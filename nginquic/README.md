@@ -11,7 +11,7 @@ curl https://raw.githubusercontent.com/minoplhy/script/main/nginquic/build.sh | 
 ```
 
 systemd Template:
-Location : /lib/systemd/system/nginx.service
+`Location : /lib/systemd/system/nginx.service`
 
 ```
 # Stop dance for nginx
