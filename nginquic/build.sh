@@ -1,4 +1,5 @@
 cd ~/
+rm -rf nginquic
 curl -sSL https://raw.githubusercontent.com/minoplhy/script/main/nginquic/packages.sh | bash
 mkdir nginquic && cd nginquic
 hg clone -b quic https://hg.nginx.org/nginx-quic
