@@ -9,7 +9,7 @@ cd .. && cd ..
 cd nginx-quic
 mkdir mosc && cd mosc && curl -sSL https://raw.githubusercontent.com/minoplhy/script/main/nginquic/modules.sh | bash && cd ..
 curl -sSL https://raw.githubusercontent.com/minoplhy/script/main/nginquic/configure.sh | bash && make
-cd objs cp *.so /lib/nginx/modules
+cd objs && cp *.so /lib/nginx/modules
 cp nginx /usr/sbin/nginx
 curl -sSL https://raw.githubusercontent.com/minoplhy/script/main/nginquic/modules.conf > modules.conf
 cp modules.conf /etc/nginx/modules-enabled
