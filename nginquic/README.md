@@ -6,7 +6,7 @@ This Script is using to build nginx with quic and some modules i'm currently usi
 
 OS : Debian
 
-```
+```python
 curl https://raw.githubusercontent.com/minoplhy/script/main/nginquic/build.sh | bash
 ```
 
