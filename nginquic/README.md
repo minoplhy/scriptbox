@@ -1,3 +1,4 @@
+## Status : Successed `(As of Jan 31 2022)`
 # Note to Self :
 This Script is using to build nginx with quic and some modules i'm currently using .
 
