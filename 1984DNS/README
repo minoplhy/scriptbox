@@ -1,0 +1,10 @@
+This was my attempted to make automatic Certbot renewal script of 1984.is FreeDNS .
+
+But acme.sh officially support 1984.is FreeDNS : https://github.com/acmesh-official/acme.sh/wiki/dnsapi#104-use-1984hosting-domain-api
+and i found that after my script was finished .
+
+so, this script is a Certbot renewal script that's not maintained anymore, unless i returned to certbot .
+
+certbot certonly --manual --manual-auth-hook before.sh --manual-cleanup-hook after.sh -d secure.example.com
+
+Command Above should still working , i guess...
