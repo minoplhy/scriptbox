@@ -1,0 +1,6 @@
+Note to Self :
+This Script is using to build nginx with quic and some modules i'm currently using .
+
+**Please Purge existed Nginx before build**
+
+OS : Debian
