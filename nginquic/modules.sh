@@ -1,14 +1,6 @@
 git clone https://github.com/openresty/headers-more-nginx-module
 git clone https://github.com/sto/ngx_http_auth_pam_module
 git clone https://github.com/arut/nginx-dav-ext-module/
-git clone https://github.com/leev/ngx_http_geoip2_module.git
-git clone https://github.com/aperezdc/ngx-fancyindex
 git clone https://github.com/openresty/echo-nginx-module
-git clone https://github.com/vision5/ngx_devel_kit
-git clone https://github.com/slact/nchan
-git clone https://github.com/openresty/lua-nginx-module
-git clone https://github.com/arut/nginx-rtmp-module
 git clone https://github.com/masterzen/nginx-upload-progress-module
-git clone https://github.com/gnosek/nginx-upstream-fair
-git clone https://github.com/yaoweibin/ngx_http_substitutions_filter_module
 git clone https://github.com/nginx-modules/ngx_cache_purge
