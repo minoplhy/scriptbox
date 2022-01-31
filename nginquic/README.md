@@ -2,8 +2,8 @@
 # Note to Self :
 This Script is using to build nginx with quic and some modules i'm currently using .
 
-**Please Purge existed Nginx before build**
-**Please not named any folder in your Home Folder to 'nginquic', because this folder will be removed first once script is run**
+- **Please Purge existed Nginx before build**
+- **Please don't named any folder in your Home Folder to 'nginquic', because this folder will be removed first once script is run**
 
 OS : Debian
 
