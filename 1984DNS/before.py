@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from requests import Session
 import requests
 import os
-from bs4 import BeautifulSoup 
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +16,6 @@ CERTBOT_VALIDATION = '12345'
 CERTBOT_DOMAIN = sys.argv[1]
 CERTBOT_ZONE = sys.argv[2]
 CERTBOT_VALIDATION = sys.argv[3]
-domain = CERTBOT_ZONE
 load_dotenv()
 auth_username = os.getenv('AUTH_USERNAME')
 auth_password = os.getenv('AUTH_PASSWORD')
@@ -44,7 +42,6 @@ for token in cookie:
         sessionid = token.value
 
 CERTBOT_HOST="_acme-challenge."+CERTBOT_DOMAIN
-name=CERTBOT_HOST
 rtype="txt"
 
 # Pull a list of records and check for ours
@@ -63,10 +60,10 @@ data = {
 	"priority": "",
 	"rdata": CERTBOT_VALIDATION,
     }
-risk = session.post("https://umsjon.1984.is/domains/entry/", data=data, headers=payload)
-s = re.findall('"id": "..*\d"', risk.text)
+PostRecord = session.post("https://umsjon.1984.is/domains/entry/", data=data, headers=payload)
+s = re.findall('"id": "..*\d"', PostRecord.text)
 s = str(s)
 s = re.sub('(\[|\"|\'|:|]| |id)', "", s)
-file1 = open('entry.txt', 'w')
-file1.write(str(s))
+ZoneFile = open('entry.txt', 'w')
+ZoneFile.write(str(s))
 exit()

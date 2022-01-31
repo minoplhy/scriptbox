@@ -1,7 +1,6 @@
 import sys
 import logging
 import re
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from requests import Session
 import os
@@ -41,13 +40,13 @@ payload = {
     "Cookie": "csrftoken="+csrftoken+"; sessionid="+sessionid
 }
 
-file1 = open('entry.txt', 'r')
-file = file1.read().split('\n')
-for zone_id in file:
-     delete_response = session.post(
+ZoneFile = open('entry.txt', 'r')
+GetZone = ZoneFile.read().split('\n')
+for zone_id in GetZone:
+     delete_zone = session.post(
         "https://umsjon.1984.is/domains/delentry/",
         data={
         "entry": zone_id,
          }, headers=payload,
      )
-print(delete_response.text)
+print(delete_zone.text)
