@@ -69,14 +69,14 @@
 :root {
   --is-dark-theme: true;
   --color-primary: #23ffcf;
-  --color-primary-dark-1: #93b373;
-  --color-primary-dark-2: #9fbc82;
-  --color-primary-dark-3: #abc492;
-  --color-primary-dark-4: #b7cda1;
-  --color-primary-dark-5: #cfddc1;
-  --color-primary-dark-6: #e7eee0;
-  --color-primary-dark-7: #f8faf6;
-  --color-primary-light-1: #7a9e55;
+  --color-primary-dark-1: #73b1b3;
+  --color-primary-dark-2: #82bcbc;
+  --color-primary-dark-3: #92c4b1;
+  --color-primary-dark-4: #a1c6cd;
+  --color-primary-dark-5: #c1dddd;
+  --color-primary-dark-6: #e0edee;
+  --color-primary-dark-7: #f6f9fa;
+  --color-primary-light-1: #2e2405;
   --color-primary-light-2: #6c8c4c;
   --color-primary-light-3: #5f7b42;
   --color-primary-light-4: #516939;
@@ -92,7 +92,7 @@
   --color-primary-alpha-70: #87ab63b3;
   --color-primary-alpha-80: #87ab63cc;
   --color-primary-alpha-90: #87ab63e1;
-  --color-secondary: #454a57;
+  --color-secondary: #644181;
   --color-secondary-dark-1: #505665;
   --color-secondary-dark-2: #5b6273;
   --color-secondary-dark-3: #71798e;
@@ -159,11 +159,11 @@
   /* target-based colors */
   --color-body: #000000;
   --color-box-header: #145355;
-  --color-box-body: #202020;
+  --color-box-body: #131602;
   --color-text-dark: #dbe0ea;
   --color-text: #dac3f5;
-  --color-text-light: #8ca7f0;
-  --color-text-light-2: #646568;
+  --color-text-light: #c8cace;
+  --color-text-light-2: #e7eaf1;
   --color-text-light-3: #6a82c4;
   --color-footer: #0c0c0c;
   --color-timeline: #0d121d;
@@ -171,8 +171,8 @@
   --color-input-background: #292d39;
   --color-input-border: #454a57;
   --color-input-border-hover: #505667;
-  --color-navbar: #2a2e3a;
-  --color-navbar-transparent: #2a2e3a00;
+  --color-navbar: #0f0f0f;
+  --color-navbar-transparent: #63646600;
   --color-light: #00000028;
   --color-light-mimic-enabled: rgba(0, 0, 0, calc(40 / 255 * 222 / 255 / var(--opacity-disabled)));
   --color-light-border: #ffffff28;
@@ -183,13 +183,13 @@
   --color-markup-table-row: #ffffff06;
   --color-markup-code-block: #292d39;
   --color-button: #353846;
-  --color-code-bg: #2a2e3a;
+  --color-code-bg: #253050;
   --color-code-sidebar-bg: #2e323e;
   --color-shadow: #00000060;
-  --color-secondary-bg: #2a2e3a;
+  --color-secondary-bg: #2e3033;
   --color-text-focus: #fff;
   --color-expand-button: #3c404d;
-  --color-placeholder-text: #6a737d;
+  --color-placeholder-text: #c4c7ca;
   --color-editor-line-highlight: var(--color-red);
   --color-project-board-bg: var(--color-secondary-light-2);
   --color-caret: var(--color-text); /* should ideally be --color-text-dark, see #15651 */
@@ -352,11 +352,11 @@ a.ui.basic.green.label:hover {
 }
 
 .repository.file.list #repo-files-table tr {
-  background: #2a2e3a;
+  background: #0c0c0c;
 }
 
 .repository.file.list #repo-files-table tr:hover {
-  background-color: #393d4a !important;
+  background-color: #5f6061 !important;
 }
 
 .overflow.menu .items .item {
