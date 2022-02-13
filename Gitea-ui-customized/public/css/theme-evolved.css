@@ -76,13 +76,13 @@
   --color-primary-dark-5: #c1dddd;
   --color-primary-dark-6: #e0edee;
   --color-primary-dark-7: #f6f9fa;
-  --color-primary-light-1: #2e2405;
-  --color-primary-light-2: #6c8c4c;
-  --color-primary-light-3: #5f7b42;
-  --color-primary-light-4: #516939;
-  --color-primary-light-5: #364626;
-  --color-primary-light-6: #1b2313;
-  --color-primary-light-7: #080b06;
+  --color-primary-light-1: #f6f9fa;
+  --color-primary-light-2: #e0edee;
+  --color-primary-light-3: #92c4b1;
+  --color-primary-light-4: #a1c6cd;
+  --color-primary-light-5: #c1dddd;
+  --color-primary-light-6: #e0edee;
+  --color-primary-light-7: #73b1b3;
   --color-primary-alpha-10: #87ab6319;
   --color-primary-alpha-20: #87ab6333;
   --color-primary-alpha-30: #87ab634b;
@@ -324,12 +324,12 @@ a.ui.basic.green.label:hover {
 
 .ui.green.button,
 .ui.green.buttons .button {
-  background-color: #8b3131;
+  background-color: #1b38dd;
 }
 
 .ui.green.button:hover,
 .ui.green.buttons .button:hover {
-  background-color: #fa4545;
+  background-color: #9faf73;
 }
 
 .ui.search > .results {
