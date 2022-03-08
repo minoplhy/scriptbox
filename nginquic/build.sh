@@ -10,6 +10,7 @@ cd .. && cd ..
 cd nginx-quic
 mkdir mosc && cd mosc && curl -sSL https://raw.githubusercontent.com/minoplhy/script/main/nginquic/modules.sh | bash && cd ..
 curl -sSL https://raw.githubusercontent.com/minoplhy/script/main/nginquic/configure.sh | bash && make
+mkdir /lib/nginx/ && mkdir /lib/nginx/modules
 cd objs && cp *.so /lib/nginx/modules
 rm /usr/sbin/nginx
 cp nginx /usr/sbin/nginx
