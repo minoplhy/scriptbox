@@ -1,0 +1,1 @@
+for ZONE in $(pdnsutil list-all-zones); do      pdnsutil set-meta $ZONE SOA-EDIT-API INCREASE; done
