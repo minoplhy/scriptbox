@@ -1,3 +1,5 @@
+@import url('theme-arc-green.css');
+
 .chroma .hl { background-color: #3f424d; } /* LineHighlight */
 .chroma .lnt { color: #7f7f7f; } /* LineNumbersTable */
 .chroma .ln { color: #7f7f7f; } /* LineNumbers */
