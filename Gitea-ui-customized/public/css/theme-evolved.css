@@ -534,3 +534,8 @@ img[src$="/img/matrix.svg"] {
   border: 1px solid rgba(121, 71, 66, .5) !important;
   border-bottom: none !important;
 }
+
+::selection {
+  background-color: rgb(150, 222, 255) !important;
+  color: #141821 !important;
+}
