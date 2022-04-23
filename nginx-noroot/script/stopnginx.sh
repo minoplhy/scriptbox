@@ -1,0 +1,1 @@
+start-stop-daemon --quiet --stop --retry QUIT/5 --pidfile ~/nginx-settings/run/nginx.pid

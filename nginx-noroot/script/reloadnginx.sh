@@ -1,0 +1,1 @@
+~/nginx-settings/sbin/nginx -g 'daemon on; master_process on;' -s reload
