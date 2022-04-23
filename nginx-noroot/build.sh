@@ -36,7 +36,7 @@ else
     echo "Required Dependencies for download Nginx doesn't exist"
 fi
 
-tar xzf pcre-8.45.tar.gz && cd nginx-1.21.6
+tar xzf nginx-1.21.6.tar.gz && cd nginx-1.21.6
 
 if [[ -f "/usr/bin/curl" ]]; then
     curl https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx-noroot/configure.sh | bash
