@@ -3,9 +3,9 @@ STOPDAEMON=`which start-stop-daemon`
 if [ "$STOPDAEMON" == "" ]; then
     if [[ "$STARTSTOPLOCATE" != "" ]]; then
         STOPDAEMON=$STARTSTOPLOCATE
-    elif [[ -f "/usr/sbin/start-stop-daemon" ]]; then
+	elif [[ -f "/usr/sbin/start-stop-daemon" ]]; then
         STOPDAEMON=/usr/sbin/start-stop-daemon
-    elif [[ -f "/usr/bin/start-stop-daemon" ]]; then
+	elif [[ -f "/usr/bin/start-stop-daemon" ]]; then
 	    STOPDAEMON=/usr/bin/start-stop-daemon
 	elif [[ -f "/sbin/start-stop-daemon" ]]; then
 	    STOPDAEMON=/sbin/start-stop-daemon
