@@ -29,4 +29,4 @@ sudo ln -s /usr/local/go/bin /usr/bin/go
 
 sudo apt-get update && sudo apt-get install make
 
-curl https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.sh | sudo bash
+curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.sh | sudo bash
