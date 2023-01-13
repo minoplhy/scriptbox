@@ -6,6 +6,12 @@ cd $MAKE_DIR
 
 GIT_TAG=$1
 
+
+# Install Dependencies
+
+sudo apt-get update && sudo apt-get install xz-utils wget git tar
+
+
 # NodeJS
 
 VERSION=v19.4.0
