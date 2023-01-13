@@ -12,4 +12,4 @@ curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.s
 
 # Known Issues
 
-- Run the script with sudo or root privileges. can cause a build to fail because of how I get NodeJS, which doesn't want to be fixed right now. Even the script required sudo privileges, though.
+- This script required root privileges because of dependencies installation, which is hard to avoid.
