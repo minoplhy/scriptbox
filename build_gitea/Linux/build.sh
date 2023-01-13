@@ -1,3 +1,5 @@
+#!/bin/bash
+
 MAKE_DIR=$(mktemp -d)
 DESTINATION=~/gitea-binaries/
 
