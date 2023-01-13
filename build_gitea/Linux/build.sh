@@ -10,7 +10,7 @@ GIT_TAG=$1
 
 # Install Dependencies
 
-sudo apt-get update && sudo apt-get install xz-utils wget git tar -y
+sudo apt-get update && sudo apt-get install xz-utils wget git tar g++ make -y
 
 # NodeJS
 
@@ -32,10 +32,6 @@ wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 sudo ln -s /usr/local/go/bin /usr/bin/go
-
-# Make
-
-sudo apt-get update && sudo apt-get install make -y
 
 # Gitea
 
