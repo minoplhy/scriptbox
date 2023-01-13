@@ -8,7 +8,7 @@ GIT_TAG=$1
 
 # Install Dependencies
 
-sudo apt-get update && sudo apt-get install xz-utils wget git tar
+sudo apt-get update && sudo apt-get install xz-utils wget git tar -y
 
 # NodeJS
 
@@ -33,7 +33,7 @@ sudo ln -s /usr/local/go/bin /usr/bin/go
 
 # Make
 
-sudo apt-get update && sudo apt-get install make
+sudo apt-get update && sudo apt-get install make -y
 
 # Gitea
 
