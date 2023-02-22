@@ -14,7 +14,7 @@ sudo apt-get update && sudo apt-get install xz-utils wget git tar g++ make -y
 
 # NodeJS
 
-VERSION=v19.4.0
+VERSION=v19.7.0
 DISTRO=linux-x64
 
 wget https://nodejs.org/dist/$VERSION/node-$VERSION-$DISTRO.tar.xz
@@ -25,7 +25,7 @@ export PATH=/usr/local/lib/nodejs/node-$VERSION-$DISTRO/bin:$PATH
 
 # Golang
 
-GO_VERSION=1.19.5
+GO_VERSION=1.20.1
 
 sudo unlink /usr/bin/go
 wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
