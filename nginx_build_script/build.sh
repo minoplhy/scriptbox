@@ -6,9 +6,11 @@ curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_
 mkdir nginx_scriptbox && cd nginx_scriptbox
 
 # Install Golang
+GO_VERSION=1.20.5
+
 unlink /usr/bin/go
-wget https://go.dev/dl/go1.19.3.linux-amd64.tar.gz
-rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.3.linux-amd64.tar.gz
+wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 ln -s /usr/local/go/bin /usr/bin/go
 
