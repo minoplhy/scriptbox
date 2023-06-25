@@ -49,6 +49,5 @@
 --add-dynamic-module=mosc/echo-nginx-module \
 --add-dynamic-module=mosc/ModSecurity-nginx \
 --with-http_v3_module \
---with-stream_quic_module \
 --with-http_geoip_module \
 --with-stream_geoip_module
