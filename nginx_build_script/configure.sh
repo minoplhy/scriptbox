@@ -1,7 +1,8 @@
 ./auto/configure \
 --with-cc-opt="-I../boringssl/include"   \
 --with-ld-opt="-L../boringssl/build/ssl  \
--L../boringssl/build/crypto" \
+-L../boringssl/build/crypto \
+-Wl,-rpath,/opt/nginx-lua-module/luajit2/lib" \
 --prefix=/usr/share/nginx \
 --conf-path=/etc/nginx/nginx.conf \
 --http-log-path=/var/log/nginx/access.log \
@@ -48,6 +49,8 @@
 --add-dynamic-module=mosc/nginx-dav-ext-module \
 --add-dynamic-module=mosc/echo-nginx-module \
 --add-dynamic-module=mosc/ModSecurity-nginx \
+--add-dynamic-module=mosc/lua-nginx-module \
+--add-dynamic-module=mosc/ngx_devel_kit \
 --with-http_v3_module \
 --with-http_geoip_module \
 --with-stream_geoip_module

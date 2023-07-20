@@ -31,12 +31,30 @@ make
 sudo make install
 cd ..
 
+# lua-nginx-module buildup part (Big Part)
+mkdir nginx-lua && cd nginx-lua
+mkdir -p /opt/nginx-lua-module/
+git clone https://github.com/openresty/lua-resty-core
+git clone https://github.com/openresty/lua-resty-lrucache
+git clone https://github.com/openresty/luajit2
+
+cd luajit2 && make install PREFIX=/opt/nginx-lua-module/luajit2 && cd ..
+cd lua-resty-core && make install PREFIX=/opt/nginx-lua-module/ && cd ..
+cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd ..
+cd ..
+
+export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
+export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
+
+# Build Nginx
+
 cd nginx
 mkdir mosc && cd mosc && curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/modules.sh | bash && cd ..
 curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/configure.sh | bash && make
 
 if [[ $Nginx_Install == "yes" ]]; then
-    mkdir /lib/nginx/ && mkdir /lib/nginx/modules
+    mkdir -p /lib/nginx/ && mkdir -p /lib/nginx/modules
+    mkdir -p /etc/nginx && mkdir -p /etc/nginx/sites-enabled && mkdir -p /etc/nginx/modules-enabled
     cd objs && cp *.so /lib/nginx/modules
     rm /usr/sbin/nginx
     cp nginx /usr/sbin/nginx
