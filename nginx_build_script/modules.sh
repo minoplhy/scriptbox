@@ -4,5 +4,5 @@ git clone https://github.com/arut/nginx-dav-ext-module/
 git clone https://github.com/openresty/echo-nginx-module
 git clone https://github.com/nginx-modules/ngx_cache_purge
 git clone https://github.com/SpiderLabs/ModSecurity-nginx
-git clone https://github.com/openresty/lua-nginx-module
-git clone https://github.com/vision5/ngx_devel_kit
+# git clone https://github.com/openresty/lua-nginx-module
+# git clone https://github.com/vision5/ngx_devel_kit
