@@ -537,5 +537,9 @@ img[src$="/img/matrix.svg"] {
 
 ::selection {
   background-color: #02100f !important;
-  color: #aee0dc !important;
+  color: #95f6ee !important;
+}
+
+.chroma .c,.chroma .c1,.chroma .ch {
+  color:rgb(191, 247, 238) !important;
 }
