@@ -46,10 +46,10 @@ then
     if git show-ref $GIT_TAG --quiet;  then
         git checkout $GIT_TAG
     else
-        echo "Variable GIT_TAG doesn't existed in the repo. fallback to default"
+        echo -e "\nGIT_TAG variable doesn't match the repo tag/version. exit to prevent further issue." && exit 1 && rm -rf $MAKE_DIR
     fi
 else
-    echo "GIT_TAG variable doesn't exist skipping"
+    echo -e "GIT_TAG variable not found. will build on "main" branch."
 fi
 
 LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make build
