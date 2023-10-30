@@ -3,7 +3,7 @@
 cd ~/
 rm -rf nginx_scriptbox
 curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/packages.sh | bash
-mkdir nginx_scriptbox && cd nginx_scriptbox
+mkdir ~/nginx_scriptbox && cd ~/nginx_scriptbox
 
 # Install Golang
 GO_VERSION=1.20.5
@@ -15,25 +15,25 @@ export PATH=$PATH:/usr/local/go/bin
 ln -s /usr/local/go/bin /usr/bin/go
 
 hg clone -b default https://hg.nginx.org/nginx
-git clone --depth=1 https://github.com/google/boringssl
-cd boringssl
-mkdir build && cd build && cmake .. && make
-cd ../..
+git clone --depth=1 https://github.com/google/boringssl ~/nginx_scriptbox/boringssl
+cd ~/nginx_scriptbox/boringssl
+mkdir ~/nginx_scriptbox/boringssl/build && cd ~/nginx_scriptbox/boringssl/build && cmake .. && make
 
 # ModSecurity Part
-git clone --depth=1 https://github.com/SpiderLabs/ModSecurity
-cd ModSecurity
+cd ~/nginx_scriptbox
+git clone --depth=1 https://github.com/SpiderLabs/ModSecurity ~/nginx_scriptbox/ModSecurity
+cd ~/nginx_scriptbox/ModSecurity
 git submodule init
 git submodule update
 ./build.sh
 ./configure
 make
 sudo make install
-cd .. # Directory should be -> ~/nginx_scriptbox
 
 # lua-nginx-module buildup part (Big Part)
 #
-mkdir nginx-lua && cd nginx-lua
+cd ~/nginx_scriptbox
+mkdir ~/nginx_scriptbox/nginx-lua && cd ~/nginx_scriptbox/nginx-lua
 mkdir -p /opt/nginx-lua-module/
 git clone https://github.com/openresty/lua-resty-core
 git clone https://github.com/openresty/lua-resty-lrucache
@@ -41,15 +41,15 @@ git clone https://github.com/openresty/luajit2
 
 cd luajit2 && make install PREFIX=/opt/nginx-lua-module/luajit2 && cd ..
 cd lua-resty-core && make install PREFIX=/opt/nginx-lua-module/ && cd ..
-cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd .. # Directory should be -> ~/nginx_scriptbox
+cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd ..
 
 export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
 export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
 
 # Build Nginx
 
-cd nginx
-mkdir mosc && cd mosc && curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/modules.sh | bash && cd ..
+cd ~/nginx_scriptbox/nginx
+mkdir ~/nginx_scriptbox/nginx/mosc && cd ~/nginx_scriptbox/nginx/mosc && curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/modules.sh | bash && cd ..
 curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/configure.sh | bash && make
 
 if [[ $Nginx_Install == "yes" ]]; then
