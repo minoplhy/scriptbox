@@ -1,9 +1,10 @@
 #!/bin/bash
 
-cd ~/
-rm -rf nginx_scriptbox
+HOMEDIRECTORY = ~/nginx_scriptbox
+
+rm -rf $HOMEDIRECTORY
 curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/packages.sh | bash
-mkdir ~/nginx_scriptbox && cd ~/nginx_scriptbox
+mkdir $HOMEDIRECTORY && cd $HOMEDIRECTORY
 
 # Install Golang
 GO_VERSION=1.20.5
@@ -15,14 +16,13 @@ export PATH=$PATH:/usr/local/go/bin
 ln -s /usr/local/go/bin /usr/bin/go
 
 hg clone -b default https://hg.nginx.org/nginx
-git clone --depth=1 https://github.com/google/boringssl ~/nginx_scriptbox/boringssl
-cd ~/nginx_scriptbox/boringssl
-mkdir ~/nginx_scriptbox/boringssl/build && cd ~/nginx_scriptbox/boringssl/build && cmake .. && make
+git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
+cd $HOMEDIRECTORY/boringssl
+mkdir $HOMEDIRECTORY/boringssl/build && cd $HOMEDIRECTORY/boringssl/build && cmake .. && make
 
 # ModSecurity Part
-cd ~/nginx_scriptbox
-git clone --depth=1 https://github.com/SpiderLabs/ModSecurity ~/nginx_scriptbox/ModSecurity
-cd ~/nginx_scriptbox/ModSecurity
+git clone --depth=1 https://github.com/SpiderLabs/ModSecurity $HOMEDIRECTORY/ModSecurity
+cd $HOMEDIRECTORY/ModSecurity
 git submodule init
 git submodule update
 ./build.sh
@@ -32,8 +32,7 @@ sudo make install
 
 # lua-nginx-module buildup part (Big Part)
 #
-cd ~/nginx_scriptbox
-mkdir ~/nginx_scriptbox/nginx-lua && cd ~/nginx_scriptbox/nginx-lua
+mkdir $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
 mkdir -p /opt/nginx-lua-module/
 git clone https://github.com/openresty/lua-resty-core
 git clone https://github.com/openresty/lua-resty-lrucache
@@ -48,18 +47,17 @@ export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
 
 # Build Nginx
 
-cd ~/nginx_scriptbox/nginx
-mkdir ~/nginx_scriptbox/nginx/mosc && cd ~/nginx_scriptbox/nginx/mosc && curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/modules.sh | bash && cd ..
+mkdir $HOMEDIRECTORY/nginx/mosc && cd $HOMEDIRECTORY/nginx/mosc && curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/modules.sh | bash && cd ..
 curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/configure.sh | bash && make
 
 if [[ $Nginx_Install == "yes" ]]; then
     mkdir -p /lib/nginx/ && mkdir -p /lib/nginx/modules
     mkdir -p /etc/nginx && mkdir -p /etc/nginx/sites-enabled && mkdir -p /etc/nginx/modules-enabled
-    cd objs && cp *.so /lib/nginx/modules
+    cp $HOMEDIRECTORY/nginx/objs/*.so /lib/nginx/modules
     rm /usr/sbin/nginx
-    cp nginx /usr/sbin/nginx
+    cp $HOMEDIRECTORY/nginx/objs/nginx /usr/sbin/nginx
     curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/modules.conf > modules.conf
     cp modules.conf /etc/nginx/modules-enabled
 else
-    echo "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : ~/nginx_scriptbox/nginx-quic/objs"
+    echo "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : '$HOMEDIRECTORY'/nginx-quic/objs"
 fi
