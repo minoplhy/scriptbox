@@ -31,22 +31,21 @@ make
 sudo make install
 cd ..
 
-# Whoops! Openresty doesn't support QUIC yet!
 # lua-nginx-module buildup part (Big Part)
 #
-## mkdir nginx-lua && cd nginx-lua
-## mkdir -p /opt/nginx-lua-module/
-## git clone https://github.com/openresty/lua-resty-core
-## git clone https://github.com/openresty/lua-resty-lrucache
-## git clone https://github.com/openresty/luajit2
-##
-## cd luajit2 && make install PREFIX=/opt/nginx-lua-module/luajit2 && cd ..
-## cd lua-resty-core && make install PREFIX=/opt/nginx-lua-module/ && cd ..
-## cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd ..
-## cd ..
-##
-## export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
-## export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
+mkdir nginx-lua && cd nginx-lua
+mkdir -p /opt/nginx-lua-module/
+git clone https://github.com/openresty/lua-resty-core
+git clone https://github.com/openresty/lua-resty-lrucache
+git clone https://github.com/openresty/luajit2
+
+cd luajit2 && make install PREFIX=/opt/nginx-lua-module/luajit2 && cd ..
+cd lua-resty-core && make install PREFIX=/opt/nginx-lua-module/ && cd ..
+cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd ..
+cd ..
+
+export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
+export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
 
 # Build Nginx
 
