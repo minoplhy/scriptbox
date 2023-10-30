@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HOMEDIRECTORY = ~/nginx_scriptbox
+HOMEDIRECTORY=~/nginx_scriptbox
 
 rm -rf $HOMEDIRECTORY
 curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/packages.sh | bash
