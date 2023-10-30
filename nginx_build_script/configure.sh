@@ -1,7 +1,7 @@
 ./auto/configure \
 --with-cc-opt="-I../boringssl/include"   \
 --with-ld-opt="-L../boringssl/build/ssl  \
--L../boringssl/build/crypto" \
+-L../boringssl/build/crypto \
 -Wl,-rpath,/opt/nginx-lua-module/luajit2/lib" \
 --prefix=/usr/share/nginx \
 --conf-path=/etc/nginx/nginx.conf \
