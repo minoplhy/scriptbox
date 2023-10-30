@@ -29,7 +29,7 @@ git submodule update
 ./configure
 make
 sudo make install
-cd ..
+cd .. # Directory should be -> ~/nginx_scriptbox
 
 # lua-nginx-module buildup part (Big Part)
 #
@@ -41,8 +41,7 @@ git clone https://github.com/openresty/luajit2
 
 cd luajit2 && make install PREFIX=/opt/nginx-lua-module/luajit2 && cd ..
 cd lua-resty-core && make install PREFIX=/opt/nginx-lua-module/ && cd ..
-cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd ..
-cd ..
+cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd .. # Directory should be -> ~/nginx_scriptbox
 
 export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
 export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
