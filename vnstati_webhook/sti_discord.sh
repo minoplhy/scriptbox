@@ -33,7 +33,7 @@ if [ -n "${days_limit}" ]; then
 fi
 
 if [ -n "${header_text}" ]; then
-    PARAMS+=("--headertext '$header_text'")
+    PARAMS+=("--headertext "$header_text"")
 fi
 
 if [ -n "${image_scale}" ]; then
