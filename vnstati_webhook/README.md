@@ -8,12 +8,19 @@ curl -sL https://github.com/minoplhy/scriptbox/raw/main/vnstati_webhook/sti_disc
 ```
 
 ## Arguments
+
 `-w` DISCORD_WEBHOOK_URL
+
 `-s` summary, hsummary, vsummary
+
 `-d` DAYS
+
 `-g` 0, 1, 2, 3
+
 `-h` TEXT, optional
+
 `-i` SCALE
+
 `-t` `enable Image Transparent`
 
 ## Image
