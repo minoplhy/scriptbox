@@ -30,8 +30,6 @@ fi
 
 if [ -n "${days_limit}" ]; then
     PARAMS+=("--days $days_limit")
-elif [ ! -n "${days_limit}" ]; then
-    PARAMS+=("--days 7")
 fi
 
 if [ -n "${header_text}" ]; then
