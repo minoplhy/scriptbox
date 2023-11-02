@@ -30,8 +30,8 @@ This will get stats from previous day , and the webhook message will be yesterda
 something like this :
 
 ![Yesterday date](assets/screenshot.png)
-
-```
+* Still, the output image is somehow buggy, this is probably due to conversion from svg to png.
+```shell
 text=$(date -d '-1 day' '+%Y-%m-%d')
 d1=$(date -d '-1 day' '+%d')
 file=/var/log/sysstat/sa$d1
