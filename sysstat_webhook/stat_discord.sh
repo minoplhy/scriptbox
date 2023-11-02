@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts 'w:crdnf:' flag
+while getopts 'w:crdnf:o:' flag
 do
     case "${flag}" in
         w) webhook_url=${OPTARG};;    # Discord Webhook URL
