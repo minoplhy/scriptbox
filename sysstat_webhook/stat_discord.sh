@@ -9,6 +9,7 @@ do
         d) DISK_IO="True";;           # DISK I/O
         n) NETWORK="True";;           # Network
         f) datafile=${OPTARG};;       # where your data belongs!
+        o) SYSSTAT_OPTIONS=${OPTARG};; # Sysstat options       
     esac
 done
 
@@ -35,7 +36,7 @@ function graph_gen {
     POSTSVG=$MAKE_DIR/sysstat_"$2"_data.svg
     POSTPNG=$MAKE_DIR/sysstat_"$2"_data.png
 
-    /usr/bin/sadf -g $EXPANSION -O oneday,skipempty -- $1 > $POSTSVG
+    /usr/bin/sadf -g ${EXPANSION[@]} -O skipempty,packed -- $1 > $POSTSVG
     svg_to_png $POSTSVG $POSTPNG
     Process $POSTPNG
 }
@@ -60,8 +61,13 @@ if [ ! -n "${webhook_url}" ]; then
     exit 1
 fi
 
+EXPANSION = ()
+if [ ! "$SYSSTAT_OPTIONS" == "" ]; then
+    EXPANSION+=$SYSSTAT_OPTIONS
+fi
+
 if [ -f "$datafile" ]; then
-    EXPANSION="-f $datafile"
+    EXPANSION+="-f $datafile"
 fi
 
 if [ "$CPU" == "True" ]; then
