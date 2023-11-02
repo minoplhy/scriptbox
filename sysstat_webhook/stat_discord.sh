@@ -63,11 +63,11 @@ fi
 
 EXPANSION=()
 if [ ! "$SYSSTAT_OPTIONS" == "" ]; then
-    EXPANSION+=$SYSSTAT_OPTIONS
+    EXPANSION+=("$SYSSTAT_OPTIONS")
 fi
 
 if [ -f "$datafile" ]; then
-    EXPANSION+="-f $datafile"
+    EXPANSION+=("-f $datafile")
 fi
 
 if [ "$CPU" == "True" ]; then
