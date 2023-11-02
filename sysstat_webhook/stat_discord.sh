@@ -61,7 +61,7 @@ if [ ! -n "${webhook_url}" ]; then
     exit 1
 fi
 
-EXPANSION = ()
+EXPANSION=()
 if [ ! "$SYSSTAT_OPTIONS" == "" ]; then
     EXPANSION+=$SYSSTAT_OPTIONS
 fi
