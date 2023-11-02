@@ -62,7 +62,7 @@ if [ ! -n "${webhook_url}" ]; then
     exit 1
 fi
 
-if [ ! "$MESSAGE_TEXT" == "" ]; then
+if [ "$MESSAGE_TEXT" == "" ]; then
     MESSAGE_TEXT=$DATETIME
 fi
 
