@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts 'w:crdnf:o:' flag
+while getopts 'w:crdnt:f:o:' flag
 do
     case "${flag}" in
         w) webhook_url=${OPTARG};;    # Discord Webhook URL
@@ -8,6 +8,7 @@ do
         r) RAM="True";;               # RAM
         d) DISK_IO="True";;           # DISK I/O
         n) NETWORK="True";;           # Network
+        t) MESSAGE_TEXT=${OPTARG};;   # Add some text to your webhook message!
         f) datafile=${OPTARG};;       # where your data belongs!
         o) SYSSTAT_OPTIONS=${OPTARG};; # Sysstat options       
     esac
@@ -51,7 +52,7 @@ function svg_to_png {
 }
 function Discord_hooks {
     curl \
-        -F 'payload_json={"content": "'$DATETIME'"}' \
+        -F 'payload_json={"content": "'$MESSAGE_TEXT'"}' \
         -F "file1=@$POSTFILE" \
     $webhook_url
 }
@@ -59,6 +60,10 @@ function Discord_hooks {
 if [ ! -n "${webhook_url}" ]; then
     echo "Fatal : no webhook_url (-w) suppiled"
     exit 1
+fi
+
+if [ ! "$MESSAGE_TEXT" == "" ]; then
+    MESSAGE_TEXT=$DATETIME
 fi
 
 EXPANSION=()
