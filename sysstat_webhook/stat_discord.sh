@@ -67,7 +67,7 @@ if [ ! "$SYSSTAT_OPTIONS" == "" ]; then
 fi
 
 if [ -f "$datafile" ]; then
-    EXPANSION+=("-f $datafile")
+    EXPANSION+=("$datafile")
 fi
 
 if [ "$CPU" == "True" ]; then
