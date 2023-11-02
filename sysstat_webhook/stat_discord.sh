@@ -36,7 +36,7 @@ function graph_gen {
     POSTSVG=$MAKE_DIR/sysstat_"$2"_data.svg
     POSTPNG=$MAKE_DIR/sysstat_"$2"_data.png
 
-    /usr/bin/sadf -g ${EXPANSION[@]} -O skipempty,packed -- $1 > $POSTSVG
+    /usr/bin/sadf -g -O skipempty,packed -- $1 ${EXPANSION[@]} > $POSTSVG
     svg_to_png $POSTSVG $POSTPNG
     Process $POSTPNG
 }
