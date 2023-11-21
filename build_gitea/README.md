@@ -7,7 +7,15 @@ curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.s
 or with a git tag
 
 ```shell
-curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.sh | bash -s -- "v1.18.0"
+curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.sh | bash -s -- -v "v1.18.0"
+```
+
+# Arguments
+
+```
+        v) GITEA_GIT_TAG=${OPTARG};;        # Gitea Git Tag
+        g) GO_VERSION=${OPTARG};;           # GOLANG Version
+        n) NODEJS_VERSION=${OPTARG};;       # NodeJS Version
 ```
 
 # Known Issues
