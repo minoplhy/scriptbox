@@ -12,7 +12,7 @@ curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.s
 
 # Arguments
 
-```
+```bash
         v) GITEA_GIT_TAG=${OPTARG};;        # Gitea Git Tag
         g) GO_VERSION=${OPTARG};;           # GOLANG Version
         n) NODEJS_VERSION=${OPTARG};;       # NodeJS Version

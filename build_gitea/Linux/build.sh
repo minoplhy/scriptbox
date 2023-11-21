@@ -15,17 +15,6 @@ do
     esac
 done
 
-
-if [[ $NODEJS_VERSION == "" ]]
-then
-    NODEJS_VERSION=v20.3.1
-fi
-
-if [[ $GO_VERSION == "" ]]
-then
-    GO_VERSION=1.20.5
-fi
-
 # GITEA_GIT_TAG is being process below
 
 # Install Dependencies
@@ -33,6 +22,11 @@ fi
 sudo apt-get update && sudo apt-get install xz-utils wget git tar g++ make -y
 
 # NodeJS
+if [[ $NODEJS_VERSION == "" ]]
+then
+    NODEJS_VERSION=v20.3.1
+fi
+
 DISTRO=linux-x64
 
 wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz
@@ -42,6 +36,11 @@ export PATH=/usr/local/lib/nodejs/node-$NODEJS_VERSION-$DISTRO/bin:$PATH
 . ~/.profile
 
 # Golang
+if [[ $GO_VERSION == "" ]]
+then
+    GO_VERSION=1.20.5
+fi
+
 sudo unlink /usr/bin/go
 wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
