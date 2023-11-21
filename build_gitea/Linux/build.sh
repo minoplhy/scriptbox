@@ -16,12 +16,12 @@ do
 done
 
 
-if [[ -n $NODEJS_VERSION ]]
+if [[ $NODEJS_VERSION == "" ]]
 then
     NODEJS_VERSION=v20.3.1
 fi
 
-if [[ -n $GO_VERSION ]]
+if [[ $GO_VERSION == "" ]]
 then
     GO_VERSION=1.20.5
 fi
