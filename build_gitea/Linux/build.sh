@@ -42,14 +42,11 @@ then
     GO_VERSION=1.20.5
 fi
 
-if [[ ! "$BUILD_STATIC" == "True" ]]
-then
-    sudo unlink /usr/bin/go
-    wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-    sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
-    export PATH=$PATH:/usr/local/go/bin
-    sudo ln -s /usr/local/go/bin /usr/bin/go
-fi
+sudo unlink /usr/bin/go
+wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+sudo ln -s /usr/local/go/bin /usr/bin/go
 
 # Gitea
 
