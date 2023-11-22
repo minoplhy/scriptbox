@@ -3,6 +3,7 @@
 MAKE_DIR=$(mktemp -d)
 DESTINATION=~/gitea-binaries/
 
+rm -rf $DESTINATION
 mkdir -p $DESTINATION
 cd $MAKE_DIR
 
