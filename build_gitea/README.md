@@ -16,6 +16,7 @@ curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.s
         v) GITEA_GIT_TAG=${OPTARG};;        # Gitea Git Tag
         g) GO_VERSION=${OPTARG};;           # GOLANG Version
         n) NODEJS_VERSION=${OPTARG};;       # NodeJS Version
+        s) BUILD_STATIC="True";;            # Build as Static Assets file
 ```
 
 # Known Issues

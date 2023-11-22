@@ -6,12 +6,13 @@ DESTINATION=~/gitea-binaries/
 mkdir -p $DESTINATION
 cd $MAKE_DIR
 
-while getopts 'v:g:n:' flag
+while getopts 'v:g:n:s' flag
 do
     case "${flag}" in
         v) GITEA_GIT_TAG=${OPTARG};;        # Gitea Git Tag
         g) GO_VERSION=${OPTARG};;           # GOLANG Version
         n) NODEJS_VERSION=${OPTARG};;       # NodeJS Version
+        s) BUILD_STATIC="True";;            # Build as Static Assets file
     esac
 done
 
@@ -41,11 +42,14 @@ then
     GO_VERSION=1.20.5
 fi
 
-sudo unlink /usr/bin/go
-wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-sudo ln -s /usr/local/go/bin /usr/bin/go
+if [[ ! "$BUILD_STATIC" == "True" ]]
+then
+    sudo unlink /usr/bin/go
+    wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
+    sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
+    export PATH=$PATH:/usr/local/go/bin
+    sudo ln -s /usr/local/go/bin /usr/bin/go
+fi
 
 # Gitea
 
@@ -66,8 +70,19 @@ else
     echo -e "GIT_TAG variable not found. will build on "main" branch."
 fi
 
-LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make build
-mv gitea $DESTINATION/gitea
+# Sometimes VPS Provider's CPU limitation is dick
+export NODE_MAX_CONCURRENCY=1
+export GOMAXPROCS=1
+
+if [[ "$BUILD_STATIC" == "True" ]]
+then
+    mkdir -p $DESTINATION/gitea-static
+    LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make frontend
+    mv $MAKE_DIR/gitea/web_src/* $DESTINATION/gitea-static
+else
+    LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make build
+    mv gitea $DESTINATION/gitea
+fi
 
 # Cleanup
 
