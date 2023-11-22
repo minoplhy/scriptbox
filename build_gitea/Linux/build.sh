@@ -75,7 +75,7 @@ if [[ "$BUILD_STATIC" == "True" ]]
 then
     mkdir -p $DESTINATION/gitea-static
     LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make frontend
-    mv $MAKE_DIR/gitea/web_src/* $DESTINATION/gitea-static
+    mv $MAKE_DIR/gitea/public/* $DESTINATION/gitea-static
 else
     LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make build
     mv gitea $DESTINATION/gitea
