@@ -48,6 +48,7 @@
 --add-dynamic-module=mosc/nginx-dav-ext-module \
 --add-dynamic-module=mosc/echo-nginx-module \
 --add-dynamic-module=mosc/ModSecurity-nginx \
+--add-dynamic-module=mosc/ngx_brotli \
 --with-http_v3_module \
 --with-http_geoip_module \
 --with-stream_geoip_module
