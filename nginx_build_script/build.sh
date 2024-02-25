@@ -7,18 +7,26 @@ curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_
 mkdir $HOMEDIRECTORY && cd $HOMEDIRECTORY
 
 # Install Golang
-GO_VERSION=1.20.5
+##GO_VERSION=1.20.5
 
-unlink /usr/bin/go
-wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-ln -s /usr/local/go/bin /usr/bin/go
+##unlink /usr/bin/go
+##wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
+##sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
+##export PATH=$PATH:/usr/local/go/bin
+##ln -s /usr/local/go/bin /usr/bin/go
 
 hg clone -b default https://hg.nginx.org/nginx
-git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
-cd $HOMEDIRECTORY/boringssl
-mkdir $HOMEDIRECTORY/boringssl/build && cd $HOMEDIRECTORY/boringssl/build && cmake .. && make
+##git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
+##cd $HOMEDIRECTORY/boringssl
+##mkdir $HOMEDIRECTORY/boringssl/build && cd $HOMEDIRECTORY/boringssl/build && cmake .. && make
+
+# Libressl
+git clone https://github.com/libressl/portable $HOMEDIRECTORY/libressl && cd $HOMEDIRECTORY/libressl
+bash ./autogen.sh && ./configure
+mkdir -p $HOMEDIRECTORY/libressl/build-ninja && cd $HOMEDIRECTORY/libressl/build-ninja
+cmake -G"Ninja" ..
+ninja
+ninja test
 
 # ModSecurity Part
 git clone --depth=1 https://github.com/SpiderLabs/ModSecurity $HOMEDIRECTORY/ModSecurity
@@ -60,5 +68,5 @@ if [[ $Nginx_Install == "yes" ]]; then
     curl -sSL https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/modules.conf > modules.conf
     cp modules.conf /etc/nginx/modules-enabled
 else
-    echo "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : '$HOMEDIRECTORY'/nginx-quic/objs"
+    echo "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : '$HOMEDIRECTORY'/nginx/objs"
 fi

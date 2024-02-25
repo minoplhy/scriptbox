@@ -1,7 +1,7 @@
 ./auto/configure \
---with-cc-opt="-I../boringssl/include"   \
---with-ld-opt="-L../boringssl/build/ssl  \
--L../boringssl/build/crypto" \
+--with-openssl="../libressl" \
+--with-cc-opt="-I../libressl/include -I /usr/local/include -m64 -march=native -mtune=native -Ofast -flto -funroll-loops -ffunction-sections -fdata-sections" \
+--with-ld-opt="-L../libressl -m64 -Wl,-s -Wl,-Bsymbolic" \
 --prefix=/usr/share/nginx \
 --conf-path=/etc/nginx/nginx.conf \
 --http-log-path=/var/log/nginx/access.log \
@@ -22,6 +22,7 @@
 --with-http_realip_module \
 --with-http_auth_request_module \
 --with-http_v2_module \
+--with-http_v3_module \
 --with-http_dav_module \
 --with-http_slice_module \
 --with-threads \
@@ -49,6 +50,5 @@
 --add-dynamic-module=mosc/echo-nginx-module \
 --add-dynamic-module=mosc/ModSecurity-nginx \
 --add-dynamic-module=mosc/ngx_brotli \
---with-http_v3_module \
 --with-http_geoip_module \
 --with-stream_geoip_module
