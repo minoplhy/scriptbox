@@ -1,0 +1,25 @@
+type: http
+
+name: line
+
+log_level: info
+
+format: |
+  message=
+  {{range . -}}{{$alert := . -}}{{range .Decisions -}}
+  [ *{{.Scenario}}* ]
+  {{if $alert.Source.Cn -}}{{ $alert.Source.Cn  }}{{end}}{{if not $alert.Source.Cn -}}N/A{{end}} {{$alert.Source.IP}}
+  Hostname: {{Hostname}}
+  Action: {{.Type}} {{.Duration}}
+  Links: https://app.crowdsec.net/cti/{{$alert.Source.IP}}
+  Links: https://www.shodan.io/host/{{$alert.Source.IP}}
+  {{end -}}
+  {{end -}}
+
+url: https://notify-api.line.me/api/notify
+
+method: POST
+
+headers:
+  Content-Type: application/x-www-form-urlencoded
+  Authorization: Bearer <access_token>
