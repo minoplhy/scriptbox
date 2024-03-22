@@ -10,6 +10,7 @@ format: |
   [ *{{.Scenario}}* ]
   {{if $alert.Source.Cn -}}{{ $alert.Source.Cn  }}{{end}}{{if not $alert.Source.Cn -}}N/A{{end}} {{$alert.Source.IP}}
   Hostname: {{Hostname}}
+  AS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}
   Action: {{.Type}} {{.Duration}}
   Links: https://app.crowdsec.net/cti/{{$alert.Source.IP}}
   Links: https://www.shodan.io/host/{{$alert.Source.IP}}
