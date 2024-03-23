@@ -18,6 +18,10 @@ sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd
 export PATH=$PATH:/usr/local/go/bin
 ln -s /usr/local/go/bin /usr/bin/go
 
+# Nginx
+cd $HOMEDIRECTORY
+hg clone -b default https://hg.nginx.org/nginx
+
 # ModSecurity
 git clone --depth=1 https://github.com/SpiderLabs/ModSecurity $HOMEDIRECTORY/ModSecurity
 cd $HOMEDIRECTORY/ModSecurity
@@ -29,15 +33,15 @@ make
 sudo make install
 
 # Get Nginx Modules
-mkdir $HOMEDIRECTORY/nginx/mosc && cd $HOMEDIRECTORY/nginx/mosc
-git clone https://github.com/openresty/headers-more-nginx-module headers-more-nginx-module
-git clone https://github.com/sto/ngx_http_auth_pam_module ngx_http_auth_pam_module
-git clone https://github.com/arut/nginx-dav-ext-module nginx-dav-ext-module
-git clone https://github.com/openresty/echo-nginx-module echo-nginx-module
-git clone https://github.com/nginx-modules/ngx_cache_purge ngx_cache_purge
-git clone https://github.com/SpiderLabs/ModSecurity-nginx ModSecurity-nginx
-git clone https://github.com/openresty/lua-nginx-module lua-nginx-module
-git clone https://github.com/vision5/ngx_devel_kit ngx_devel_kit
+mkdir $HOMEDIRECTORY/nginx/mosc
+git clone https://github.com/openresty/headers-more-nginx-module $HOMEDIRECTORY/nginx/mosc/headers-more-nginx-module
+git clone https://github.com/sto/ngx_http_auth_pam_module $HOMEDIRECTORY/nginx/mosc/ngx_http_auth_pam_module
+git clone https://github.com/arut/nginx-dav-ext-module $HOMEDIRECTORY/nginx/mosc/nginx-dav-ext-module
+git clone https://github.com/openresty/echo-nginx-module $HOMEDIRECTORY/nginx/mosc/echo-nginx-module
+git clone https://github.com/nginx-modules/ngx_cache_purge $HOMEDIRECTORY/nginx/mosc/ngx_cache_purge
+git clone https://github.com/SpiderLabs/ModSecurity-nginx $HOMEDIRECTORY/nginx/mosc/ModSecurity-nginx
+git clone https://github.com/openresty/lua-nginx-module $HOMEDIRECTORY/nginx/mosc/lua-nginx-module
+git clone https://github.com/vision5/ngx_devel_kit $HOMEDIRECTORY/nginx/mosc/ngx_devel_kit
 
 # Nginx Module: ngx_brotli
 git clone --recurse-submodules -j8 https://github.com/google/ngx_brotli
