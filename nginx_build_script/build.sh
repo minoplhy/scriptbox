@@ -56,13 +56,13 @@ cmake --build . --config Release --target brotlienc
 
 mkdir $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
 mkdir -p /opt/nginx-lua-module/
-git clone https://github.com/openresty/lua-resty-core
-git clone https://github.com/openresty/lua-resty-lrucache
-git clone https://github.com/openresty/luajit2
+git clone https://github.com/openresty/lua-resty-core $HOMEDIRECTORY/nginx-lua/lua-resty-core
+git clone https://github.com/openresty/lua-resty-lrucache $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache
+git clone https://github.com/openresty/luajit2 $HOMEDIRECTORY/nginx-lua/luajit2
 
-cd luajit2 && make install PREFIX=/opt/nginx-lua-module/luajit2 && cd ..
-cd lua-resty-core && make install PREFIX=/opt/nginx-lua-module/ && cd ..
-cd lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/ && cd ..
+cd $HOMEDIRECTORY/nginx-lua/luajit2 && make && make install PREFIX=/opt/nginx-lua-module/luajit2
+cd $HOMEDIRECTORY/nginx-lua/lua-resty-core && make install PREFIX=/opt/nginx-lua-module/
+cd $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/
 
 export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
 export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
@@ -76,7 +76,7 @@ cd $HOMEDIRECTORY/nginx
 ./auto/configure \
 --with-cc=c++ \
 --with-cc-opt="-I../boringssl/include -x c" \
---with-ld-opt="-L../boringssl/build/ssl -L../boringssl/build/crypto" \
+--with-ld-opt="-L../boringssl/build/ssl -L../boringssl/build/crypto -Wl,-rpath,$LUAJIT_LIB" \
 --prefix=/usr/share/nginx \
 --conf-path=/etc/nginx/nginx.conf \
 --http-log-path=/var/log/nginx/access.log \
