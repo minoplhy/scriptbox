@@ -44,9 +44,9 @@ git clone https://github.com/openresty/lua-nginx-module $HOMEDIRECTORY/nginx/mos
 git clone https://github.com/vision5/ngx_devel_kit $HOMEDIRECTORY/nginx/mosc/ngx_devel_kit
 
 # Nginx Module: ngx_brotli
-git clone --recurse-submodules -j8 https://github.com/google/ngx_brotli
-cd ngx_brotli/deps/brotli
-mkdir out && cd outQ
+git clone --recurse-submodules -j8 https://github.com/google/ngx_brotli $HOMEDIRECTORY/nginx/mosc/ngx_brotli
+cd $HOMEDIRECTORY/nginx/mosc/ngx_brotli/deps/brotli
+mkdir out && cd out
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS="-Ofast -m64 -march=native -mtune=native -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections" -DCMAKE_CXX_FLAGS="-Ofast -m64 -march=native -mtune=native -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections" -DCMAKE_INSTALL_PREFIX=./installed ..
 cmake --build . --config Release --target brotlienc
 
