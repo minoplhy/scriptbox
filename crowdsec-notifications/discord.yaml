@@ -11,20 +11,11 @@ format: |
       {{range . -}}
       {{$alert := . -}}
       {{range .Decisions -}}
-      {{if $alert.Source.Cn -}}
       {
         "title": "{{.Scenario}}",
-        "description": ":flag_{{ $alert.Source.Cn | lower }}: {{$alert.Source.IP}}\n Hostname: {{Hostname}}\nAS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}\nAction: {{.Type}} {{.Duration}}\nLinks: [CTI](https://app.crowdsec.net/cti/{{$alert.Source.IP}}) | [Shodan](https://www.shodan.io/host/{{$alert.Source.IP}})",
+        "description": "{{if $alert.Source.Cn -}}:flag_{{ $alert.Source.Cn | lower }}:{{end}}{{if not $alert.Source.Cn -}}:pirate_flag:{{end}} {{$alert.Source.IP}}\nCount : {{ $alert.EventsCount }}\n{{if $alert.Source.AsNumber -}}AS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}{{else}}AS: N/A{{end}}\nAction: {{.Type}} {{.Duration}} on {{ Hostname }}\nStart: {{ $alert.StartAt }}\nStop: {{ $alert.StopAt }}",
         "color": "16711680"
       }
-      {{end}}
-      {{if not $alert.Source.Cn -}}
-      {
-        "title": "{{.Scenario}}",
-        "description": ":pirate_flag: {{$alert.Source.IP}}\nHostname: {{Hostname}}\nAS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}\nAction: {{.Type}} {{.Duration}}\nLinks: [CTI](https://app.crowdsec.net/cti/{{$alert.Source.IP}}) | [Shodan](https://www.shodan.io/host/{{$alert.Source.IP}})",
-        "color": "16711680"
-      }
-      {{end}}
       {{end -}}
       {{end -}}
     ]

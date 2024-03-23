@@ -9,13 +9,13 @@ format: |
   {{range . -}}{{$alert := . -}}{{range .Decisions -}}
   [ *{{.Scenario}}* ]
   {{if $alert.Source.Cn -}}{{ $alert.Source.Cn  }}{{end}}{{if not $alert.Source.Cn -}}N/A{{end}} {{$alert.Source.IP}}
-  Hostname: {{Hostname}}
-  AS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}
-  Action: {{.Type}} {{.Duration}}
-  Links: https://app.crowdsec.net/cti/{{$alert.Source.IP}}
-  Links: https://www.shodan.io/host/{{$alert.Source.IP}}
-  {{end -}}
-  {{end -}}
+  {{if $alert.Source.AsNumber -}}AS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}{{else}}AS: N/A{{end}}
+  Action: {{.Type}} {{.Duration}} on {{ Hostname }}
+  Count : {{ $alert.EventsCount }}
+  Start:
+  {{ $alert.StartAt }}
+  Stop:
+  {{ $alert.StopAt }}{{end -}}{{end -}}
 
 url: https://notify-api.line.me/api/notify
 
