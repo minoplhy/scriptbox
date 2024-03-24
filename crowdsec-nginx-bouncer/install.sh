@@ -111,7 +111,7 @@ install() {
 mkdir -p $MAKEDIR
 build_luarocks
 download_crowdsec_nginx_bouncer
-#gen_apikey
+gen_apikey
 check_nginx_dependency
 build_luarocks
 install
