@@ -10,7 +10,7 @@ bash ~/nginx_scriptbox.sh
 
 #### Note :  don't forgot to add necessary `lua_package_path` directive to `nginx.conf`, in the http context. else Nginx won't run.
 ```lua
-lua_package_path "/opt/nginx-lua-module/lib/lua/?.lua;;";
+lua_package_path "/usr/local/lua/?.lua;;';
 ```
 
 systemd Template:

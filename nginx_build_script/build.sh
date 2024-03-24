@@ -59,10 +59,12 @@ mkdir -p /opt/nginx-lua-module/
 git clone https://github.com/openresty/lua-resty-core $HOMEDIRECTORY/nginx-lua/lua-resty-core
 git clone https://github.com/openresty/lua-resty-lrucache $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache
 git clone https://github.com/openresty/luajit2 $HOMEDIRECTORY/nginx-lua/luajit2
+git clone https://github.com/openresty/lua-resty-string $HOMEDIRECTORY/nginx-lua/lua-resty-string
 
 cd $HOMEDIRECTORY/nginx-lua/luajit2 && make && make install PREFIX=/opt/nginx-lua-module/luajit2
-cd $HOMEDIRECTORY/nginx-lua/lua-resty-core && make install PREFIX=/opt/nginx-lua-module/
-cd $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache && make install PREFIX=/opt/nginx-lua-module/
+cd $HOMEDIRECTORY/nginx-lua/lua-resty-core && make install PREFIX=/usr/local/lua LUA_LIB_DIR=/usr/local/lua
+cd $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache && make install PREFIX=/usr/local/lua LUA_LIB_DIR=/usr/local/lua
+cd $HOMEDIRECTORY/nginx-lua/lua-resty-string && make install PREFIX=/usr/local/lua LUA_LIB_DIR=/usr/local/lua
 
 export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
 export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
