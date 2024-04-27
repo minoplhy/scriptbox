@@ -7,6 +7,11 @@ export Nginx_Install=yes  # This variable is required if you want Nginx to be in
 curl https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/build.sh > ~/nginx_scriptbox.sh
 bash ~/nginx_scriptbox.sh
 ```
+new way to run! :
+```bash
+# With install Nginx
+curl https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/build.sh | bash -s -- --install
+```
 
 # Arguments
 ```bash
@@ -17,6 +22,9 @@ while [ ${#} -gt 0 ]; do
             ;;
         --no-lua | -nl )
             DISABLE_LUA=true                # Not include Lua in building
+            ;;
+        --install | -i )
+            INSTALL=true                    # Install Nginx
             ;;
         *)
             ;;

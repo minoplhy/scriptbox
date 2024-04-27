@@ -8,6 +8,9 @@ while [ ${#} -gt 0 ]; do
         --no-lua | -nl )
             DISABLE_LUA=true                # Not include Lua in building
             ;;
+        --install | -i )
+            INSTALL=true                    # Install Nginx
+            ;;
         *)
             ;;
     esac
@@ -181,7 +184,7 @@ cd $HOMEDIRECTORY/nginx
 
 make
 
-if [[ $Nginx_Install == "yes" ]]; then
+if [[ $Nginx_Install == "yes" || $INSTALL == true ]]; then
     mkdir -p /lib/nginx/ && mkdir -p /lib/nginx/modules
     mkdir -p /etc/nginx && mkdir -p /etc/nginx/sites-enabled && mkdir -p /etc/nginx/modules-enabled
     cp $HOMEDIRECTORY/nginx/objs/*.so /lib/nginx/modules
