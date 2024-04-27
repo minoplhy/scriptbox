@@ -13,10 +13,28 @@ curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.s
 # Arguments
 
 ```bash
-        v) GITEA_GIT_TAG=${OPTARG};;        # Gitea Git Tag
-        g) GO_VERSION=${OPTARG};;           # GOLANG Version
-        n) NODEJS_VERSION=${OPTARG};;       # NodeJS Version
-        s) BUILD_STATIC="True";;            # Build as Static Assets file
+while [ ${#} -gt 0 ]; do
+    case "$1" in
+        --git-tag | -v) 
+            shift
+            GITEA_GIT_TAG=$1
+            ;;                          # Gitea Git Tag
+        --golang-version | -g) 
+            shift
+            GO_VERSION=$1 
+            ;;                          # GOLANG Version
+        --nodejs-version | -n) 
+            shift
+            NODEJS_VERSION=$1 
+            ;;                          # NodeJS Version
+        --static | -s) 
+            BUILD_STATIC=true 
+            ;;                          # Build as Static Assets file
+        *)
+            ;;
+    esac
+    shift # Shift to next response for parsing
+done
 ```
 
 # Known Issues
