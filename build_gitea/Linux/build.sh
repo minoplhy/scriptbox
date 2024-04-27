@@ -39,7 +39,7 @@ sudo apt-get update && sudo apt-get install xz-utils wget git tar g++ make -y
 # NodeJS
 if [[ $NODEJS_VERSION == "" ]]
 then
-    NODEJS_VERSION=v20.3.1
+    NODEJS_VERSION=v20.11.1
 fi
 
 DISTRO=linux-x64
@@ -53,7 +53,7 @@ export PATH=/usr/local/lib/nodejs/node-$NODEJS_VERSION-$DISTRO/bin:$PATH
 # Golang
 if [[ $GO_VERSION == "" ]]
 then
-    GO_VERSION=1.20.5
+    GO_VERSION=1.22.1
 fi
 
 sudo unlink /usr/bin/go
