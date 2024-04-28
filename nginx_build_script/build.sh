@@ -87,6 +87,7 @@ case $SSL_LIB in
         ninja -C build
         export DESTDIR=$HOMEDIRECTORY/libressl/libressl-build
         ninja install -C build
+        export -n DESTDIR   # unset to avoid problems with Luajit2/Lua*
 
         mkdir -p /opt/libressl/.openssl
         cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/include /opt/libressl/.openssl
@@ -140,7 +141,7 @@ cmake --build . --config Release --target brotlienc
 # lua resty core,lrucache,luajit2
 
 if [ ! "${DISABLE_LUA}" == true ]; then
-    mkdir $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
+    mkdir -p $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
     mkdir -p /opt/nginx-lua-module/
     git clone https://github.com/openresty/lua-resty-core $HOMEDIRECTORY/nginx-lua/lua-resty-core
     git clone https://github.com/openresty/lua-resty-lrucache $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache
