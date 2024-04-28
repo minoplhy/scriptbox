@@ -286,7 +286,6 @@ if [[ $Nginx_Install == "yes" || $INSTALL == true ]]; then
     mkdir -p /lib/nginx/ && mkdir -p /lib/nginx/modules
     mkdir -p /etc/nginx && mkdir -p /etc/nginx/sites-enabled && mkdir -p /etc/nginx/modules-enabled
     cp $HOMEDIRECTORY/nginx/objs/*.so /lib/nginx/modules
-    rm /usr/sbin/nginx
     cp $HOMEDIRECTORY/nginx/objs/nginx /usr/sbin/nginx
 
     cat >modules.conf <<EOL
