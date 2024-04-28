@@ -45,10 +45,14 @@ done
 
 #### Note :  
 * don't forgot to add necessary `lua_package_path` directive to `nginx.conf`, in the http context. else Nginx won't run.
-* LibreSSL is broken when compile with Nginx Lua
-
 ```lua
 lua_package_path "/usr/local/lua/?.lua;;';
+```
+
+* LibreSSL is broken when compile with Nginx Lua
+taken from compiler:
+```
+error: implicit declaration of function ‘SSL_client_hello_get0_ext’ [-Werror=implicit-function-declaration]
 ```
 
 systemd Template:
