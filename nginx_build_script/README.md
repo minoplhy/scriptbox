@@ -17,14 +17,24 @@ curl https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_scrip
 ```bash
 while [ ${#} -gt 0 ]; do
     case "$1" in
-        --no-modsecurity | -nm )
-            DISABLE_MODSECURITY=true        # Not include ModSecurity in building
-            ;;
-        --no-lua | -nl )
-            DISABLE_LUA=true                # Not include Lua in building
-            ;;
-        --install | -i )
-            INSTALL=true                    # Install Nginx
+        --no-modsecurity | -nm )            DISABLE_MODSECURITY=true;;  # Not include ModSecurity in building
+        --no-lua | -nl )                    DISABLE_LUA=true        ;;  # Not include Lua in building
+        --install | -i )                    INSTALL=true            ;;  # Install Nginx
+        --ssl=* )
+            SSL_LIB="${1#*=}"
+            case $SSL_LIB in                # Re-define SSL_LIB
+                "quictls")                  SSL_LIB="quictls"   ;;
+                "boringssl")                SSL_LIB="boringssl" ;;
+                "libressl")                 SSL_LIB="libressl"  ;;
+                "")
+                    echo "ERROR : --ssl= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR : Vaild values for --ssl are -> quictls, boringssl, libressl"
+                    exit 1
+                    ;;
+            esac
             ;;
         *)
             ;;
@@ -33,7 +43,10 @@ while [ ${#} -gt 0 ]; do
 done
 ```
 
-#### Note :  don't forgot to add necessary `lua_package_path` directive to `nginx.conf`, in the http context. else Nginx won't run.
+#### Note :  
+* don't forgot to add necessary `lua_package_path` directive to `nginx.conf`, in the http context. else Nginx won't run.
+* LibreSSL is broken when compile with Nginx Lua
+
 ```lua
 lua_package_path "/usr/local/lua/?.lua;;';
 ```

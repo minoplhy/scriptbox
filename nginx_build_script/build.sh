@@ -2,14 +2,24 @@
 
 while [ ${#} -gt 0 ]; do
     case "$1" in
-        --no-modsecurity | -nm )
-            DISABLE_MODSECURITY=true        # Not include ModSecurity in building
-            ;;
-        --no-lua | -nl )
-            DISABLE_LUA=true                # Not include Lua in building
-            ;;
-        --install | -i )
-            INSTALL=true                    # Install Nginx
+        --no-modsecurity | -nm )            DISABLE_MODSECURITY=true;;  # Not include ModSecurity in building
+        --no-lua | -nl )                    DISABLE_LUA=true        ;;  # Not include Lua in building
+        --install | -i )                    INSTALL=true            ;;  # Install Nginx
+        --ssl=* )
+            SSL_LIB="${1#*=}"
+            case $SSL_LIB in                # Re-define SSL_LIB
+                "quictls")                  SSL_LIB="quictls"   ;;
+                "boringssl")                SSL_LIB="boringssl" ;;
+                "libressl")                 SSL_LIB="libressl"  ;;
+                "")
+                    echo "ERROR : --ssl= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR : Vaild values for --ssl are -> quictls, boringssl, libressl"
+                    exit 1
+                    ;;
+            esac
             ;;
         *)
             ;;
@@ -17,43 +27,72 @@ while [ ${#} -gt 0 ]; do
     shift
 done
 
-HOMEDIRECTORY=~/nginx_scriptbox
+# if $SSL_LIB is null/empty
+SSL_LIB=${SSL_LIB:-"boringssl"}
 
-rm -rf $HOMEDIRECTORY
+#################################
+##                             ##
+##    Dependencies Setup       ##
+##                             ##
+#################################
 
+# Get Dependencies
 sudo apt-get install mercurial libunwind-dev libpcre3 libpcre3-dev zlib1g-dev cmake make libxslt1-dev libgd-dev libssl-dev libperl-dev libpam0g-dev libgeoip-dev git g++ -y
 sudo apt-get install apt-utils autoconf automake build-essential libcurl4-openssl-dev liblmdb-dev libtool libxml2-dev libyajl-dev pkgconf wget ninja-build -y
 
+HOMEDIRECTORY=~/nginx_scriptbox
+
+# Remove old build directory
+rm -rf $HOMEDIRECTORY
+
 mkdir $HOMEDIRECTORY && cd $HOMEDIRECTORY
-
-# Golang
-GO_VERSION=1.22.1
-
-unlink /usr/bin/go
-wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-ln -s /usr/local/go/bin /usr/bin/go
 
 # Nginx
 cd $HOMEDIRECTORY
 hg clone -b default https://hg.nginx.org/nginx
 
-# BoringSSL
-#git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
-#cd $HOMEDIRECTORY/boringssl
-#cmake -GNinja -B build
-#ninja -C build
+# Build SSL Library
+case $SSL_LIB in
+    "quictls")
+        git clone --depth=1 https://github.com/quictls/openssl $HOMEDIRECTORY/openssl
+        cd $HOMEDIRECTORY/openssl
+        ./Configure --prefix=/opt/quictls
+        make
+        make install
+        mkdir -p /opt/quictls/.openssl
+        cp -r /opt/quictls/include /opt/quictls/.openssl/include
+        cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
+        ;;
+    "boringssl")
+        # Golang
+        GO_VERSION=1.22.1
 
-# QuicTLS OpenSSL
-git clone --depth=1 https://github.com/quictls/openssl $HOMEDIRECTORY/openssl
-cd $HOMEDIRECTORY/openssl
-./Configure --prefix=/opt/quictls
-make
-make install
-mkdir -p /opt/quictls/.openssl
-cp -r /opt/quictls/include /opt/quictls/.openssl/include
-cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
+        unlink /usr/bin/go
+        wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
+        sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
+        export PATH=$PATH:/usr/local/go/bin
+        ln -s /usr/local/go/bin /usr/bin/go
+
+        git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
+        cd $HOMEDIRECTORY/boringssl
+        cmake -GNinja -B build
+        ninja -C build
+        ;;
+    "libressl")
+        git clone --depth=1 https://github.com/libressl/portable $HOMEDIRECTORY/libressl
+        cd $HOMEDIRECTORY/libressl
+        ./autogen.sh
+        ./configure
+        cmake -GNinja -B build
+        ninja -C build
+        export DESTDIR=$HOMEDIRECTORY/libressl/libressl-build
+        ninja install -C build
+
+        mkdir -p /opt/libressl/.openssl
+        cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/include /opt/libressl/.openssl
+        cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/lib /opt/libressl/.openssl
+        ;;
+esac
 
 # ModSecurity
 if [ ! "${DISABLE_MODSECURITY}" == true ]; then
@@ -67,7 +106,12 @@ if [ ! "${DISABLE_MODSECURITY}" == true ]; then
     sudo make install
 fi
 
-# Get Nginx Modules
+#################################
+##                             ##
+##       Nginx Modules         ##
+##                             ##
+#################################
+
 mkdir $HOMEDIRECTORY/nginx/mosc
 git clone https://github.com/openresty/headers-more-nginx-module $HOMEDIRECTORY/nginx/mosc/headers-more-nginx-module
 git clone https://github.com/sto/ngx_http_auth_pam_module $HOMEDIRECTORY/nginx/mosc/ngx_http_auth_pam_module
@@ -112,15 +156,17 @@ if [ ! "${DISABLE_LUA}" == true ]; then
     export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
 fi
 
-# Build Nginx
-#
-# Why "--with-cc=c++"?
-# see -> https://trac.nginx.org/nginx/ticket/2605#comment:8
+######################################################################
+##                                                                  ##
+##      Build Nginx                                                 ##
+##                                                                  ##
+##      Why "--with-cc=c++"?                                        ##
+##      see -> https://trac.nginx.org/nginx/ticket/2605#comment:8   ##
+##                                                                  ##
+######################################################################
 
 NGINX_CONFIG_PARAMS=(
     --with-cc=c++
-    --with-openssl="/opt/quictls"
-    --with-cc-opt="-I/opt/quictls/.openssl/include -x c"
     --prefix=/usr/share/nginx
     --conf-path=/etc/nginx/nginx.conf
     --http-log-path=/var/log/nginx/access.log
@@ -173,33 +219,68 @@ NGINX_CONFIG_PARAMS=(
 )
 
 # NGINX Config Params configuration
+case $SSL_LIB in
+    "quictls")
+        NGINX_CONFIG_PARAMS+=(
+            --with-openssl="/opt/quictls"
+            --with-cc-opt="-I/opt/quictls/.openssl/include -x c"
+        )
+        WITH_LD_OPT="-L/opt/quictls/.openssl/lib"
+        ;;
+    "boringssl")
+        NGINX_CONFIG_PARAMS+=(
+            --with-cc-opt="-I../boringssl/include -x c"
+        )
+        WITH_LD_OPT="-L../boringssl/build/ssl -L../boringssl/build/crypto"
+        ;;
+    "libressl")
+        NGINX_CONFIG_PARAMS+=(
+            --with-openssl="/opt/libressl"
+            --with-cc-opt="-x c"
+        )
+        ;;
+esac
+
 if [ ! "${DISABLE_MODSECURITY}" == true ]; then
     NGINX_CONFIG_PARAMS+=(
         --add-dynamic-module=mosc/ModSecurity-nginx
-        )
+    )
 fi
 
-## with-ld-opt is implemented here
+# SomeHow, Nginx is broken when compiling as dynamic module with BoringSSL. 
+# Compiling as module seems to fix this.
 if [ ! "${DISABLE_LUA}" == true ]; then
     NGINX_CONFIG_PARAMS+=(
-        --with-ld-opt="-L/opt/quictls/.openssl/lib -Wl,-rpath,$LUAJIT_LIB"
-        --add-dynamic-module=mosc/ngx_devel_kit
-        --add-dynamic-module=mosc/lua-nginx-module
+        --add-module=mosc/ngx_devel_kit
+        --add-module=mosc/lua-nginx-module
     )
-else
+    WITH_LD_OPT+=" -Wl,-rpath,$LUAJIT_LIB"
+fi
+
+# Build --with-ld-opt arguments here
+if [[ -n ${WITH_LD_OPT} && ${WITH_LD_OPT} != "" ]]; then
     NGINX_CONFIG_PARAMS+=(
-        --with-ld-opt="-L/opt/quictls/.openssl/lib"
+        --with-ld-opt="${WITH_LD_OPT}"
     )
 fi
 
 cd $HOMEDIRECTORY/nginx
 ./auto/configure "${NGINX_CONFIG_PARAMS[@]}"
 
-# Prevent Error 127
-touch /opt/quictls/.openssl/include/openssl/ssl.h
-
+# Prevent Error 127, When building.
+if [ $SSL_LIB == "quictls" ]; then
+    touch /opt/quictls/.openssl/include/openssl/ssl.h
+elif [ $SSL_LIB == "libressl" ]; then
+    touch /opt/libressl/.openssl/include/openssl/ssl.h
+fi
 
 make
+
+#################################
+##                             ##
+##   Install Nginx(optional)   ##
+##                             ##
+#################################
 
 if [[ $Nginx_Install == "yes" || $INSTALL == true ]]; then
     mkdir -p /lib/nginx/ && mkdir -p /lib/nginx/modules
@@ -221,13 +302,6 @@ EOL
     if [ ! "${DISABLE_MODSECURITY}" == true ]; then
         cat >>modules.conf <<EOL
 load_module /lib/nginx/modules/ngx_http_modsecurity_module.so;
-EOL
-    fi
-
-    if [ ! "${DISABLE_LUA}" == true ]; then
-    cat >>modules.conf <<EOL
-load_module /lib/nginx/modules/ndk_http_module.so;
-load_module /lib/nginx/modules/ngx_http_lua_module.so;
 EOL
     fi
 
