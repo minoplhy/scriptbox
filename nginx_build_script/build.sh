@@ -40,10 +40,20 @@ cd $HOMEDIRECTORY
 hg clone -b default https://hg.nginx.org/nginx
 
 # BoringSSL
-git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
-cd $HOMEDIRECTORY/boringssl
-cmake -GNinja -B build
-ninja -C build
+#git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
+#cd $HOMEDIRECTORY/boringssl
+#cmake -GNinja -B build
+#ninja -C build
+
+# QuicTLS OpenSSL
+git clone --depth=1 https://github.com/quictls/openssl $HOMEDIRECTORY/openssl
+cd $HOMEDIRECTORY/openssl
+./Configure --prefix=/opt/quictls
+make
+make install
+mkdir -p /opt/quictls/.openssl
+cp -r /opt/quictls/include /opt/quictls/.openssl/include
+cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
 
 # ModSecurity
 if [ ! "${DISABLE_MODSECURITY}" == true ]; then
@@ -64,13 +74,13 @@ git clone https://github.com/sto/ngx_http_auth_pam_module $HOMEDIRECTORY/nginx/m
 git clone https://github.com/arut/nginx-dav-ext-module $HOMEDIRECTORY/nginx/mosc/nginx-dav-ext-module
 git clone https://github.com/openresty/echo-nginx-module $HOMEDIRECTORY/nginx/mosc/echo-nginx-module
 git clone https://github.com/nginx-modules/ngx_cache_purge $HOMEDIRECTORY/nginx/mosc/ngx_cache_purge
-git clone https://github.com/vision5/ngx_devel_kit $HOMEDIRECTORY/nginx/mosc/ngx_devel_kit
 
 if [ ! "${DISABLE_MODSECURITY}" == true ]; then
     git clone https://github.com/SpiderLabs/ModSecurity-nginx $HOMEDIRECTORY/nginx/mosc/ModSecurity-nginx
 fi
 
 if [ ! "${DISABLE_LUA}" == true ]; then
+    git clone https://github.com/vision5/ngx_devel_kit $HOMEDIRECTORY/nginx/mosc/ngx_devel_kit
     git clone https://github.com/openresty/lua-nginx-module $HOMEDIRECTORY/nginx/mosc/lua-nginx-module
 fi
 
@@ -109,7 +119,8 @@ fi
 
 NGINX_CONFIG_PARAMS=(
     --with-cc=c++
-    --with-cc-opt="-I../boringssl/include -x c"
+    --with-openssl="/opt/quictls"
+    --with-cc-opt="-I/opt/quictls/.openssl/include -x c"
     --prefix=/usr/share/nginx
     --conf-path=/etc/nginx/nginx.conf
     --http-log-path=/var/log/nginx/access.log
@@ -157,30 +168,36 @@ NGINX_CONFIG_PARAMS=(
     --add-dynamic-module=mosc/nginx-dav-ext-module
     --add-dynamic-module=mosc/echo-nginx-module
     --add-dynamic-module=mosc/ngx_brotli
-    --add-dynamic-module=mosc/ngx_devel_kit
     --with-http_geoip_module
     --with-stream_geoip_module
 )
 
 # NGINX Config Params configuration
 if [ ! "${DISABLE_MODSECURITY}" == true ]; then
-    NGINX_CONFIG_PARAMS+=(--add-dynamic-module=mosc/ModSecurity-nginx)
+    NGINX_CONFIG_PARAMS+=(
+        --add-dynamic-module=mosc/ModSecurity-nginx
+        )
 fi
 
 ## with-ld-opt is implemented here
 if [ ! "${DISABLE_LUA}" == true ]; then
     NGINX_CONFIG_PARAMS+=(
-        --with-ld-opt="-L../boringssl/build/ssl -L../boringssl/build/crypto -Wl,-rpath,$LUAJIT_LIB"
+        --with-ld-opt="-L/opt/quictls/.openssl/lib -Wl,-rpath,$LUAJIT_LIB"
+        --add-dynamic-module=mosc/ngx_devel_kit
         --add-dynamic-module=mosc/lua-nginx-module
     )
 else
     NGINX_CONFIG_PARAMS+=(
-        --with-ld-opt="-L../boringssl/build/ssl -L../boringssl/build/crypto"
+        --with-ld-opt="-L/opt/quictls/.openssl/lib"
     )
 fi
 
 cd $HOMEDIRECTORY/nginx
 ./auto/configure "${NGINX_CONFIG_PARAMS[@]}"
+
+# Prevent Error 127
+touch /opt/quictls/.openssl/include/openssl/ssl.h
+
 
 make
 
@@ -199,15 +216,19 @@ load_module /lib/nginx/modules/ngx_http_echo_module.so;
 load_module /lib/nginx/modules/ngx_http_headers_more_filter_module.so;
 load_module /lib/nginx/modules/ngx_http_brotli_filter_module.so;
 load_module /lib/nginx/modules/ngx_http_brotli_static_module.so;
-load_module /lib/nginx/modules/ndk_http_module.so;
 EOL
 
     if [ ! "${DISABLE_MODSECURITY}" == true ]; then
-        echo "load_module /lib/nginx/modules/ngx_http_modsecurity_module.so;" >> modules.conf
+        cat >>modules.conf <<EOL
+load_module /lib/nginx/modules/ngx_http_modsecurity_module.so;
+EOL
     fi
 
     if [ ! "${DISABLE_LUA}" == true ]; then
-        echo "load_module /lib/nginx/modules/ngx_http_lua_module.so;" >> modules.conf
+    cat >>modules.conf <<EOL
+load_module /lib/nginx/modules/ndk_http_module.so;
+load_module /lib/nginx/modules/ngx_http_lua_module.so;
+EOL
     fi
 
     cp modules.conf /etc/nginx/modules-enabled
