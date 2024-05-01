@@ -46,7 +46,7 @@ done
 #### Note :  
 * don't forgot to add necessary `lua_package_path` directive to `nginx.conf`, in the http context. else Nginx won't run.
 ```lua
-lua_package_path "/usr/local/lua/?.lua;;';
+lua_package_path "/usr/local/lua/?.lua;;";
 ```
 
 * LibreSSL is broken when compile with Nginx Lua
