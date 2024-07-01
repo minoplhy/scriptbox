@@ -2,15 +2,57 @@
 
 The script here is entirely copied from [minoplhy/nginquic](https://github.com/minoplhy/nginquic)@ModSecurity_incl. Which included ModSecurity for my own using.
 
-```shell
+```bash
 export Nginx_Install=yes  # This variable is required if you want Nginx to be installed scriptibly (on Debian-based systems).
 curl https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/build.sh > ~/nginx_scriptbox.sh
 bash ~/nginx_scriptbox.sh
 ```
+new way to run! :
+```bash
+# With install Nginx
+curl https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_script/build.sh | bash -s -- --install
+```
 
-#### Note :  don't forgot to add necessary `lua_package_path` directive to `nginx.conf`, in the http context. else Nginx won't run.
+# Arguments
+```bash
+while [ ${#} -gt 0 ]; do
+    case "$1" in
+        --no-modsecurity | -nm )            DISABLE_MODSECURITY=true;;  # Not include ModSecurity in building
+        --no-lua | -nl )                    DISABLE_LUA=true        ;;  # Not include Lua in building
+        --install | -i )                    INSTALL=true            ;;  # Install Nginx
+        --ssl=* )
+            SSL_LIB="${1#*=}"
+            case $SSL_LIB in                # Re-define SSL_LIB
+                "quictls")                  SSL_LIB="quictls"   ;;
+                "boringssl")                SSL_LIB="boringssl" ;;
+                "libressl")                 SSL_LIB="libressl"  ;;
+                "")
+                    echo "ERROR : --ssl= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR : Vaild values for --ssl are -> quictls, boringssl, libressl"
+                    exit 1
+                    ;;
+            esac
+            ;;
+        *)
+            ;;
+    esac
+    shift
+done
+```
+
+#### Note :  
+* don't forgot to add necessary `lua_package_path` directive to `nginx.conf`, in the http context. else Nginx won't run.
 ```lua
-lua_package_path "/usr/local/lua/?.lua;;';
+lua_package_path "/usr/local/lua/?.lua;;";
+```
+
+* LibreSSL is broken when compile with Nginx Lua
+taken from compiler:
+```
+error: implicit declaration of function ‘SSL_client_hello_get0_ext’ [-Werror=implicit-function-declaration]
 ```
 
 systemd Template:

@@ -7,14 +7,27 @@ rm -rf $DESTINATION
 mkdir -p $DESTINATION
 cd $MAKE_DIR
 
-while getopts 'v:g:n:s' flag
-do
-    case "${flag}" in
-        v) GITEA_GIT_TAG=${OPTARG};;        # Gitea Git Tag
-        g) GO_VERSION=${OPTARG};;           # GOLANG Version
-        n) NODEJS_VERSION=${OPTARG};;       # NodeJS Version
-        s) BUILD_STATIC="True";;            # Build as Static Assets file
+while [ ${#} -gt 0 ]; do
+    case "$1" in
+        --git-tag | -v) 
+            shift
+            GITEA_GIT_TAG=$1
+            ;;                          # Gitea Git Tag
+        --golang-version | -g) 
+            shift
+            GO_VERSION=$1 
+            ;;                          # GOLANG Version
+        --nodejs-version | -n) 
+            shift
+            NODEJS_VERSION=$1 
+            ;;                          # NodeJS Version
+        --static | -s) 
+            BUILD_STATIC=true 
+            ;;                          # Build as Static Assets file
+        *)
+            ;;
     esac
+    shift # Shift to next response for parsing
 done
 
 # GITEA_GIT_TAG is being process below
@@ -72,7 +85,7 @@ fi
 export NODE_MAX_CONCURRENCY=1
 export GOMAXPROCS=1
 
-if [[ "$BUILD_STATIC" == "True" ]]
+if [[ "$BUILD_STATIC" == true ]]
 then
     mkdir -p $DESTINATION/gitea-static
     LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make frontend
