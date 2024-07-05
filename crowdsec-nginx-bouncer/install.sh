@@ -59,6 +59,7 @@ gen_apikey() {
 check_nginx_dependency() {
     DEPENDENCY=(
         "gettext-base"
+        "unzip"
     )
     for dep in ${DEPENDENCY[@]};
     do
