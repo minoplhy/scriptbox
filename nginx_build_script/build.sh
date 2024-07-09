@@ -21,6 +21,17 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --nginx-tag=* )
+            NGINX_TAG="${1#*=}"
+            case $NGINX_TAG in
+                "")
+                    echo "ERROR: --nginx-tag= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;
         *)
             ;;
     esac
@@ -49,7 +60,21 @@ mkdir $HOMEDIRECTORY && cd $HOMEDIRECTORY
 
 # Nginx
 cd $HOMEDIRECTORY
-hg clone -b default https://hg.nginx.org/nginx
+hg clone https://hg.nginx.org/nginx $HOMEDIRECTORY/nginx
+
+cd $HOMEDIRECTORY/nginx
+# Check if the tag exists
+if [[ -n $NGINX_TAG ]]
+then
+    if hg tags | grep -q "^${NGINX_TAG}\>"; then
+        echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
+        hg checkout $NGINX_TAG
+    else
+        echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
+    fi
+else
+    hg checkout default
+fi
 
 # Build SSL Library
 case $SSL_LIB in
