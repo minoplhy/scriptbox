@@ -22,7 +22,7 @@ while [ ${#} -gt 0 ]; do
             esac
             ;;
         --nginx-tag=* )
-            NGINX_TAG="${1#*=}"
+            NGINX_TAG="${1#*=}"             # Specify Nginx Mercurial Tag
             case $NGINX_TAG in
                 "")
                     echo "ERROR: --nginx-tag= is empty!"
