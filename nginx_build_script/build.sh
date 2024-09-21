@@ -7,6 +7,7 @@ while [ ${#} -gt 0 ]; do
         --install | -i )                    INSTALL=true            ;;  # Install Nginx
         --ssl=* )
             SSL_LIB="${1#*=}"
+            SSL_LIB="${SSL_LIB,,}"
             case $SSL_LIB in                # Re-define SSL_LIB
                 "quictls")                  SSL_LIB="quictls"   ;;
                 "boringssl")                SSL_LIB="boringssl" ;;
@@ -21,8 +22,24 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --type=* )
+            BUILD_TYPE="${1#*=}"
+            BUILD_TYPE="${BUILD_TYPE,,}"
+            case $BUILD_TYPE in
+                "nginx")                    BUILD_TYPE="nginx"      ;;
+                "freenginx")                BUILD_TYPE="freenginx"  ;;
+                "")
+                    echo "ERROR : --type= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR :  Vaild values for --type are -> nginx, freenginx"
+                    exit 1
+                    ;;
+            esac
+            ;;
         --nginx-tag=* )
-            NGINX_TAG="${1#*=}"             # Specify Nginx Mercurial Tag
+            NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
             case $NGINX_TAG in
                 "")
                     echo "ERROR: --nginx-tag= is empty!"
@@ -40,6 +57,7 @@ done
 
 # if $SSL_LIB is null/empty
 SSL_LIB=${SSL_LIB:-"boringssl"}
+BUILD_TYPE=${BUILD_TYPE:-"nginx"}
 
 #################################
 ##                             ##
@@ -58,23 +76,45 @@ rm -rf $HOMEDIRECTORY
 
 mkdir $HOMEDIRECTORY && cd $HOMEDIRECTORY
 
-# Nginx
-cd $HOMEDIRECTORY
-hg clone https://hg.nginx.org/nginx $HOMEDIRECTORY/nginx
+#Setup Nginx/freenginx repository
+case $BUILD_TYPE in
+    "nginx")
+        cd $HOMEDIRECTORY
+        git clone https://github.com/nginx/nginx $HOMEDIRECTORY/nginx
+        cd $HOMEDIRECTORY/nginx
 
-cd $HOMEDIRECTORY/nginx
-# Check if the tag exists
-if [[ -n $NGINX_TAG ]]
-then
-    if hg tags | grep -q "^${NGINX_TAG}\>"; then
-        echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
-        hg checkout $NGINX_TAG
-    else
-        echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
-    fi
-else
-    hg checkout default
-fi
+        # Check if the tag exists
+        if [[ -n $NGINX_TAG ]]
+        then
+            if git show-ref $NGINX_TAG --quiet;  then
+                echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
+                git checkout $NGINX_TAG
+            else
+                echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
+            fi
+        else
+            git checkout master
+        fi
+        ;;
+    "freenginx")
+        cd $HOMEDIRECTORY
+        hg clone https://freenginx.org/hg/nginx $HOMEDIRECTORY/nginx
+
+        cd $HOMEDIRECTORY/nginx
+        # Check if the tag exists
+        if [[ -n $NGINX_TAG ]]
+        then
+            if hg tags | grep -q "^${NGINX_TAG}\>"; then
+                echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
+                hg checkout $NGINX_TAG
+            else
+                echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
+            fi
+        else
+            hg checkout default
+        fi
+        ;;
+esac
 
 # Build SSL Library
 case $SSL_LIB in
@@ -83,20 +123,20 @@ case $SSL_LIB in
         cd $HOMEDIRECTORY/openssl
         ./Configure --prefix=/opt/quictls
         make
-        make install
-        mkdir -p /opt/quictls/.openssl
-        cp -r /opt/quictls/include /opt/quictls/.openssl/include
-        cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
+        sudo make install
+        sudo mkdir -p /opt/quictls/.openssl
+        sudo cp -r /opt/quictls/include /opt/quictls/.openssl/include
+        sudo cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
         ;;
     "boringssl")
         # Golang
         GO_VERSION=1.22.1
 
-        unlink /usr/bin/go
+        sudo unlink /usr/bin/go
         wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
         sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
         export PATH=$PATH:/usr/local/go/bin
-        ln -s /usr/local/go/bin /usr/bin/go
+        sudo ln -s /usr/local/go/bin /usr/bin/go
 
         git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
         cd $HOMEDIRECTORY/boringssl
@@ -114,9 +154,9 @@ case $SSL_LIB in
         ninja install -C build
         export -n DESTDIR   # unset to avoid problems with Luajit2/Lua*
 
-        mkdir -p /opt/libressl/.openssl
-        cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/include /opt/libressl/.openssl
-        cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/lib /opt/libressl/.openssl
+        sudo mkdir -p /opt/libressl/.openssl
+        sudo cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/include /opt/libressl/.openssl
+        sudo cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/lib /opt/libressl/.openssl
         ;;
 esac
 
@@ -167,7 +207,7 @@ cmake --build . --config Release --target brotlienc
 
 if [ ! "${DISABLE_LUA}" == true ]; then
     mkdir -p $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
-    mkdir -p /opt/nginx-lua-module/
+    sudo mkdir -p /opt/nginx-lua-module/
     git clone https://github.com/openresty/lua-resty-core $HOMEDIRECTORY/nginx-lua/lua-resty-core
     git clone https://github.com/openresty/lua-resty-lrucache $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache
     git clone https://github.com/openresty/luajit2 $HOMEDIRECTORY/nginx-lua/luajit2
@@ -295,9 +335,9 @@ cd $HOMEDIRECTORY/nginx
 
 # Prevent Error 127, When building.
 if [ $SSL_LIB == "quictls" ]; then
-    touch /opt/quictls/.openssl/include/openssl/ssl.h
+    sudo touch /opt/quictls/.openssl/include/openssl/ssl.h
 elif [ $SSL_LIB == "libressl" ]; then
-    touch /opt/libressl/.openssl/include/openssl/ssl.h
+    sudo touch /opt/libressl/.openssl/include/openssl/ssl.h
 fi
 
 make
