@@ -34,6 +34,7 @@ while [ ${#} -gt 0 ]; do
                     ;;
                 *)
                     echo "ERROR :  Vaild values for --type are -> nginx, freenginx"
+                    exit 1
                     ;;
             esac
             ;;
@@ -131,7 +132,7 @@ case $SSL_LIB in
         # Golang
         GO_VERSION=1.22.1
 
-        unlink /usr/bin/go
+        sudo unlink /usr/bin/go
         wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
         sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
         export PATH=$PATH:/usr/local/go/bin
