@@ -135,7 +135,7 @@ case $SSL_LIB in
         wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
         sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
         export PATH=$PATH:/usr/local/go/bin
-        ln -s /usr/local/go/bin /usr/bin/go
+        sudo ln -s /usr/local/go/bin /usr/bin/go
 
         git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
         cd $HOMEDIRECTORY/boringssl
