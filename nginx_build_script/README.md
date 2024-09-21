@@ -22,6 +22,7 @@ while [ ${#} -gt 0 ]; do
         --install | -i )                    INSTALL=true            ;;  # Install Nginx
         --ssl=* )
             SSL_LIB="${1#*=}"
+            SSL_LIB="${SSL_LIB,,}"
             case $SSL_LIB in                # Re-define SSL_LIB
                 "quictls")                  SSL_LIB="quictls"   ;;
                 "boringssl")                SSL_LIB="boringssl" ;;
@@ -36,8 +37,24 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --type=* )
+            BUILD_TYPE="${1#*=}"
+            BUILD_TYPE="${BUILD_TYPE,,}"
+            case $BUILD_TYPE in
+                "nginx")                    BUILD_TYPE="nginx"      ;;
+                "freenginx")                BUILD_TYPE="freenginx"  ;;
+                "")
+                    echo "ERROR : --type= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR :  Vaild values for --type are -> nginx, freenginx"
+                    exit 1
+                    ;;
+            esac
+            ;;
         --nginx-tag=* )
-            NGINX_TAG="${1#*=}"             # Specify Nginx Mercurial Tag
+            NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
             case $NGINX_TAG in
                 "")
                     echo "ERROR: --nginx-tag= is empty!"
@@ -52,7 +69,6 @@ while [ ${#} -gt 0 ]; do
     esac
     shift
 done
-
 ```
 
 #### Note :  
