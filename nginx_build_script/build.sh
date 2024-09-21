@@ -123,7 +123,7 @@ case $SSL_LIB in
         cd $HOMEDIRECTORY/openssl
         ./Configure --prefix=/opt/quictls
         make
-        make install
+        sudo make install
         sudo mkdir -p /opt/quictls/.openssl
         sudo cp -r /opt/quictls/include /opt/quictls/.openssl/include
         sudo cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
