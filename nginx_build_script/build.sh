@@ -7,6 +7,7 @@ while [ ${#} -gt 0 ]; do
         --install | -i )                    INSTALL=true            ;;  # Install Nginx
         --ssl=* )
             SSL_LIB="${1#*=}"
+            SSL_LIB="${SSL_LIB,,}"
             case $SSL_LIB in                # Re-define SSL_LIB
                 "quictls")                  SSL_LIB="quictls"   ;;
                 "boringssl")                SSL_LIB="boringssl" ;;
@@ -21,8 +22,23 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --type=* )
+            BUILD_TYPE="${1#*=}"
+            BUILD_TYPE="${BUILD_TYPE,,}"
+            case $BUILD_TYPE in
+                "nginx")                    BUILD_TYPE="nginx"      ;;
+                "freenginx")                BUILD_TYPE="freenginx"  ;;
+                "")
+                    echo "ERROR : --type= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR :  Vaild values for --type are -> nginx, freenginx"
+                    ;;
+            esac
+            ;;
         --nginx-tag=* )
-            NGINX_TAG="${1#*=}"             # Specify Nginx Mercurial Tag
+            NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
             case $NGINX_TAG in
                 "")
                     echo "ERROR: --nginx-tag= is empty!"
@@ -40,6 +56,7 @@ done
 
 # if $SSL_LIB is null/empty
 SSL_LIB=${SSL_LIB:-"boringssl"}
+BUILD_TYPE=${BUILD_TYPE:-"nginx"}
 
 #################################
 ##                             ##
@@ -58,23 +75,45 @@ rm -rf $HOMEDIRECTORY
 
 mkdir $HOMEDIRECTORY && cd $HOMEDIRECTORY
 
-# Nginx
-cd $HOMEDIRECTORY
-hg clone https://hg.nginx.org/nginx $HOMEDIRECTORY/nginx
+#Setup Nginx/freenginx repository
+case $BUILD_TYPE in
+    "nginx")
+        cd $HOMEDIRECTORY
+        git clone https://github.com/nginx/nginx $HOMEDIRECTORY/nginx
+        cd $HOMEDIRECTORY/nginx
 
-cd $HOMEDIRECTORY/nginx
-# Check if the tag exists
-if [[ -n $NGINX_TAG ]]
-then
-    if hg tags | grep -q "^${NGINX_TAG}\>"; then
-        echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
-        hg checkout $NGINX_TAG
-    else
-        echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
-    fi
-else
-    hg checkout default
-fi
+        # Check if the tag exists
+        if [[ -n $NGINX_TAG ]]
+        then
+            if git show-ref $NGINX_TAG --quiet;  then
+                echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
+                git checkout $NGINX_TAG
+            else
+                echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
+            fi
+        else
+            git checkout master
+        fi
+        ;;
+    "freenginx")
+        cd $HOMEDIRECTORY
+        hg clone https://freenginx.org/hg/nginx $HOMEDIRECTORY/nginx
+
+        cd $HOMEDIRECTORY/nginx
+        # Check if the tag exists
+        if [[ -n $NGINX_TAG ]]
+        then
+            if hg tags | grep -q "^${NGINX_TAG}\>"; then
+                echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
+                hg checkout $NGINX_TAG
+            else
+                echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
+            fi
+        else
+            hg checkout default
+        fi
+        ;;
+esac
 
 # Build SSL Library
 case $SSL_LIB in
