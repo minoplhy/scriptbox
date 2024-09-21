@@ -124,9 +124,9 @@ case $SSL_LIB in
         ./Configure --prefix=/opt/quictls
         make
         make install
-        mkdir -p /opt/quictls/.openssl
-        cp -r /opt/quictls/include /opt/quictls/.openssl/include
-        cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
+        sudo mkdir -p /opt/quictls/.openssl
+        sudo cp -r /opt/quictls/include /opt/quictls/.openssl/include
+        sudo cp -r /opt/quictls/lib64 /opt/quictls/.openssl/lib
         ;;
     "boringssl")
         # Golang
@@ -154,9 +154,9 @@ case $SSL_LIB in
         ninja install -C build
         export -n DESTDIR   # unset to avoid problems with Luajit2/Lua*
 
-        mkdir -p /opt/libressl/.openssl
-        cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/include /opt/libressl/.openssl
-        cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/lib /opt/libressl/.openssl
+        sudo mkdir -p /opt/libressl/.openssl
+        sudo cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/include /opt/libressl/.openssl
+        sudo cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/lib /opt/libressl/.openssl
         ;;
 esac
 
@@ -207,7 +207,7 @@ cmake --build . --config Release --target brotlienc
 
 if [ ! "${DISABLE_LUA}" == true ]; then
     mkdir -p $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
-    mkdir -p /opt/nginx-lua-module/
+    sudo mkdir -p /opt/nginx-lua-module/
     git clone https://github.com/openresty/lua-resty-core $HOMEDIRECTORY/nginx-lua/lua-resty-core
     git clone https://github.com/openresty/lua-resty-lrucache $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache
     git clone https://github.com/openresty/luajit2 $HOMEDIRECTORY/nginx-lua/luajit2
@@ -335,9 +335,9 @@ cd $HOMEDIRECTORY/nginx
 
 # Prevent Error 127, When building.
 if [ $SSL_LIB == "quictls" ]; then
-    touch /opt/quictls/.openssl/include/openssl/ssl.h
+    sudo touch /opt/quictls/.openssl/include/openssl/ssl.h
 elif [ $SSL_LIB == "libressl" ]; then
-    touch /opt/libressl/.openssl/include/openssl/ssl.h
+    sudo touch /opt/libressl/.openssl/include/openssl/ssl.h
 fi
 
 make
