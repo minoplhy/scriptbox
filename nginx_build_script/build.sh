@@ -66,8 +66,45 @@ BUILD_TYPE=${BUILD_TYPE:-"nginx"}
 #################################
 
 # Get Dependencies
-sudo apt-get install mercurial libunwind-dev libpcre3 libpcre3-dev zlib1g-dev cmake make libxslt1-dev libgd-dev libssl-dev libperl-dev libpam0g-dev libgeoip-dev git g++ -y
-sudo apt-get install apt-utils autoconf automake build-essential libcurl4-openssl-dev liblmdb-dev libtool libxml2-dev libyajl-dev pkgconf wget ninja-build -y
+
+# Detect OS
+os=$(cat /etc/os-release | grep -oP "^ID=\K[^ ]+")
+case $os in
+    "debian" | "ubuntu" )
+        sudo apt update
+        sudo apt install -y \
+            mercurial \
+            libunwind-dev \
+            libpcre3 \
+            libpcre3-dev \
+            zlib1g-dev \
+            cmake \
+            make \
+            libxslt1-dev \
+            libgd-dev \
+            libssl-dev \
+            libperl-dev \
+            libpam0g-dev \
+            libgeoip-dev \
+            git \
+            g++ \
+            apt-utils \
+            autoconf \
+            automake \
+            build-essential \
+            libcurl4-openssl-dev \
+            liblmdb-dev \
+            libtool \
+            libxml2-dev \
+            libyajl-dev \
+            pkgconf \
+            wget \
+            ninja-build
+        ;;
+    * )
+        echo "ERROR: the os detected is not supported. The script will run as is."
+        ;;
+esac
 
 HOMEDIRECTORY=~/nginx_scriptbox
 
@@ -130,13 +167,11 @@ case $SSL_LIB in
         ;;
     "boringssl")
         # Golang
-        GO_VERSION=1.22.1
+        GO_VERSION=1.23.1
 
-        sudo unlink /usr/bin/go
         wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-        sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
-        export PATH=$PATH:/usr/local/go/bin
-        sudo ln -s /usr/local/go/bin /usr/bin/go
+        tar -C $HOMEDIRECTORY -xzf go$GO_VERSION.linux-amd64.tar.gz
+        export PATH=$PATH:$HOMEDIRECTORY/go/bin
 
         git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
         cd $HOMEDIRECTORY/boringssl
