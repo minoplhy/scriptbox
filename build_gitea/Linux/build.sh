@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MAKE_DIR=$(mktemp -d)
-DESTINATION=~/gitea-binaries/
+DESTINATION=~/gitea-binaries
 
 rm -rf $DESTINATION
 mkdir -p $DESTINATION
@@ -9,66 +9,115 @@ cd $MAKE_DIR
 
 while [ ${#} -gt 0 ]; do
     case "$1" in
-        --git-tag | -v) 
+        --git-tag | -v)
             shift
             GITEA_GIT_TAG=$1
             ;;                          # Gitea Git Tag
-        --golang-version | -g) 
+        --golang-version | -g)
             shift
-            GO_VERSION=$1 
+            GO_VERSION=$1
             ;;                          # GOLANG Version
-        --nodejs-version | -n) 
+        --nodejs-version | -n)
             shift
-            NODEJS_VERSION=$1 
+            NODEJS_VERSION=$1
             ;;                          # NodeJS Version
-        --static | -s) 
-            BUILD_STATIC=true 
-            ;;                          # Build as Static Assets file
+        --static | -s)
+            BUILD_STATIC=true
+            ;;                          # Also Build Static Assets file
+        --type=* )
+            BUILD_TYPE="${1#*=}"
+            BUILD_TYPE="${BUILD_TYPE,,}"
+            case $BUILD_TYPE in
+                "gitea")                    BUILD_TYPE="gitea"      ;;
+                "forgejo")                  BUILD_TYPE="forgejo"    ;;
+                "")
+                    echo "ERROR : --type= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR :  Vaild values for --type are -> gitea, forgejo"
+                    exit 1
+                    ;;
+            esac
+            ;;
         *)
             ;;
     esac
     shift # Shift to next response for parsing
 done
 
+# If empty
+NODEJS_VERSION=${NODEJS_VERSION:-"v20.17.0"}
+GO_VERSION=${GO_VERSION:-"1.23.2"}
+BUILD_TYPE=${BUILD_TYPE:-"gitea"}
+
 # GITEA_GIT_TAG is being process below
 
 # Install Dependencies
 
-sudo apt-get update && sudo apt-get install xz-utils wget git tar g++ make -y
+os=$(grep '^ID=' /etc/os-release | cut -d'=' -f2)
+case $os in
+    "debian" | "ubuntu" )
+        sudo apt update
+        sudo apt install -y \
+            xz-utils \
+            wget \
+            git \
+            tar \
+            g++ \
+            make
+        ;;
+    "alpine" )
+        apk update
+        apk add \
+            xz \
+            wget \
+            git \
+            tar \
+            g++ \
+            make
+        ;;
+    * )
+        echo "ERROR: the os detected is not supported. The script will run as is."
+        ;;
+esac
 
 # NodeJS
-if [[ $NODEJS_VERSION == "" ]]
-then
-    NODEJS_VERSION=v20.11.1
-fi
-
 DISTRO=linux-x64
 
-wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz
-sudo mkdir -p /usr/local/lib/nodejs
-sudo tar -xJvf node-$NODEJS_VERSION-$DISTRO.tar.xz -C /usr/local/lib/nodejs 
-export PATH=/usr/local/lib/nodejs/node-$NODEJS_VERSION-$DISTRO/bin:$PATH
-. ~/.profile
+case $os in
+    "alpine")
+        apk add nodejs # NodeJS broken when install from binary
+    ;;
+    * )
+        wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz
+        tar -xJvf node-$NODEJS_VERSION-$DISTRO.tar.xz -C $MAKE_DIR
+        export PATH=$PATH:$MAKE_DIR/node-$NODEJS_VERSION-$DISTRO/bin
+    ;;
+esac
 
 # Golang
-if [[ $GO_VERSION == "" ]]
-then
-    GO_VERSION=1.22.1
-fi
-
-sudo unlink /usr/bin/go
 wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-sudo ln -s /usr/local/go/bin /usr/bin/go
+tar -C $MAKE_DIR -xzf go$GO_VERSION.linux-amd64.tar.gz
+export PATH=$PATH:$MAKE_DIR/go/bin
 
 # Gitea
 
-# GIT_TAG= 
+# GIT_TAG=
 # specify the tag which gitea will build on
 
-git clone https://github.com/go-gitea/gitea
-cd gitea
+case $BUILD_TYPE in
+    "gitea")
+        echo "INFO: Building on gitea"
+        git clone https://github.com/go-gitea/gitea $DESTINATION/gitea-repo
+        ;;
+    "forgejo")
+        echo "INFO: Building on forgejo"
+        git clone https://codeberg.org/forgejo/forgejo $DESTINATION/gitea-repo #LOL
+        ;;
+esac
+
+cd $DESTINATION/gitea-repo
 
 if [[ -n $GITEA_GIT_TAG ]]
 then
@@ -82,17 +131,20 @@ else
 fi
 
 # Sometimes VPS Provider's CPU limitation is dick
-export NODE_MAX_CONCURRENCY=1
-export GOMAXPROCS=1
+export LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\""
+export TAGS="bindata sqlite sqlite_unlock_notify"
+export GOOS=linux
+export GOARCH=amd64
+
+make build
+mv gitea $DESTINATION/gitea
 
 if [[ "$BUILD_STATIC" == true ]]
 then
     mkdir -p $DESTINATION/gitea-static
-    LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make frontend
+
+    make frontend
     mv $MAKE_DIR/gitea/public/* $DESTINATION/gitea-static
-else
-    LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\"" TAGS="bindata sqlite sqlite_unlock_notify" GOOS=linux GOARCH=amd64 make build
-    mv gitea $DESTINATION/gitea
 fi
 
 # Cleanup

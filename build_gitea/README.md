@@ -29,7 +29,23 @@ while [ ${#} -gt 0 ]; do
             ;;                          # NodeJS Version
         --static | -s) 
             BUILD_STATIC=true 
-            ;;                          # Build as Static Assets file
+            ;;                          # Also Build Static Assets file
+        --type=* )
+            BUILD_TYPE="${1#*=}"
+            BUILD_TYPE="${BUILD_TYPE,,}"
+            case $BUILD_TYPE in
+                "gitea")                    BUILD_TYPE="gitea"      ;;
+                "forgejo")                  BUILD_TYPE="forgejo"  ;;
+                "")
+                    echo "ERROR : --type= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR :  Vaild values for --type are -> gitea, forgejo"
+                    exit 1
+                    ;;
+            esac
+            ;;
         *)
             ;;
     esac
