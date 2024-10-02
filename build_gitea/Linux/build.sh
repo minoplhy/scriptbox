@@ -1,6 +1,5 @@
 #!/bin/bash
 
-MAKE_DIR=$(mktemp -d)
 DESTINATION=~/gitea-binaries
 
 rm -rf $DESTINATION
@@ -92,14 +91,14 @@ case $os in
     * )
         wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz
         tar -xJvf node-$NODEJS_VERSION-$DISTRO.tar.xz -C $MAKE_DIR
-        export PATH=$PATH:$MAKE_DIR/node-$NODEJS_VERSION-$DISTRO/bin
+        export PATH=$PATH:$DESTINATION/node-$NODEJS_VERSION-$DISTRO/bin
     ;;
 esac
 
 # Golang
 wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
 tar -C $MAKE_DIR -xzf go$GO_VERSION.linux-amd64.tar.gz
-export PATH=$PATH:$MAKE_DIR/go/bin
+export PATH=$PATH:$DESTINATION/go/bin
 
 # Gitea
 
@@ -144,9 +143,5 @@ then
     mkdir -p $DESTINATION/gitea-static
 
     make frontend
-    mv $MAKE_DIR/gitea/public/* $DESTINATION/gitea-static
+    mv $DESTINATION/gitea-repo/public/* $DESTINATION/gitea-static
 fi
-
-# Cleanup
-
-rm -rf $MAKE_DIR
