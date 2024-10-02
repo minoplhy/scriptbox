@@ -89,15 +89,15 @@ case $os in
         apk add nodejs # NodeJS broken when install from binary
     ;;
     * )
-        wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz
-        tar -xJvf node-$NODEJS_VERSION-$DISTRO.tar.xz -C $MAKE_DIR
+        wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
+        tar -xJvf $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz -C $MAKE_DIR
         export PATH=$PATH:$DESTINATION/node-$NODEJS_VERSION-$DISTRO/bin
     ;;
 esac
 
 # Golang
-wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-tar -C $MAKE_DIR -xJvf go$GO_VERSION.linux-amd64.tar.gz
+wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz -O $DESTINATION/go$GO_VERSION.linux-amd64.tar.gz
+tar -C $DESTINATION -xJvf $DESTINATION/go$GO_VERSION.linux-amd64.tar.gz
 export PATH=$PATH:$DESTINATION/go/bin
 
 # Gitea
