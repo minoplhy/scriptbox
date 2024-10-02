@@ -68,7 +68,7 @@ BUILD_TYPE=${BUILD_TYPE:-"nginx"}
 # Get Dependencies
 
 # Detect OS
-os=$(cat /etc/os-release | grep -oP "^ID=\K[^ ]+")
+os=$(grep '^ID=' /etc/os-release | cut -d'=' -f2)
 case $os in
     "debian" | "ubuntu" )
         sudo apt update
@@ -84,7 +84,6 @@ case $os in
             libgd-dev \
             libssl-dev \
             libperl-dev \
-            libpam0g-dev \
             libgeoip-dev \
             git \
             g++ \
@@ -100,6 +99,36 @@ case $os in
             pkgconf \
             wget \
             ninja-build
+        ;;
+    "alpine" )
+        apk update
+        apk add \
+            mercurial \
+            libunwind \
+            pcre-dev \
+            zlib-dev \
+            cmake \
+            make \
+            libxslt-dev \
+            gd-dev \
+            openssl-dev \
+            perl-dev \
+            geoip-dev \
+            git \
+            g++ \
+            build-base \
+            autoconf \
+            automake \
+            curl-dev \
+            lmdb-dev \
+            libtool \
+            libxml2-dev \
+            yajl-dev \
+            pkgconf \
+            wget \
+            ninja \
+            linux-headers \
+            sudo
         ;;
     * )
         echo "ERROR: the os detected is not supported. The script will run as is."
@@ -186,7 +215,7 @@ case $SSL_LIB in
         cmake -GNinja -B build
         ninja -C build
         export DESTDIR=$HOMEDIRECTORY/libressl/libressl-build
-        ninja install -C build
+        ninja -C build install
         export -n DESTDIR   # unset to avoid problems with Luajit2/Lua*
 
         sudo mkdir -p /opt/libressl/.openssl
@@ -215,10 +244,7 @@ fi
 
 mkdir $HOMEDIRECTORY/nginx/mosc
 git clone https://github.com/openresty/headers-more-nginx-module $HOMEDIRECTORY/nginx/mosc/headers-more-nginx-module
-git clone https://github.com/sto/ngx_http_auth_pam_module $HOMEDIRECTORY/nginx/mosc/ngx_http_auth_pam_module
-git clone https://github.com/arut/nginx-dav-ext-module $HOMEDIRECTORY/nginx/mosc/nginx-dav-ext-module
 git clone https://github.com/openresty/echo-nginx-module $HOMEDIRECTORY/nginx/mosc/echo-nginx-module
-git clone https://github.com/nginx-modules/ngx_cache_purge $HOMEDIRECTORY/nginx/mosc/ngx_cache_purge
 
 if [ ! "${DISABLE_MODSECURITY}" == true ]; then
     git clone https://github.com/SpiderLabs/ModSecurity-nginx $HOMEDIRECTORY/nginx/mosc/ModSecurity-nginx
@@ -310,9 +336,6 @@ NGINX_CONFIG_PARAMS=(
     --with-stream_ssl_module
     --with-stream_ssl_preread_module
     --add-dynamic-module=mosc/headers-more-nginx-module
-    --add-dynamic-module=mosc/ngx_http_auth_pam_module
-    --add-dynamic-module=mosc/ngx_cache_purge
-    --add-dynamic-module=mosc/nginx-dav-ext-module
     --add-dynamic-module=mosc/echo-nginx-module
     --add-dynamic-module=mosc/ngx_brotli
     --with-http_geoip_module
@@ -390,9 +413,6 @@ if [[ $Nginx_Install == "yes" || $INSTALL == true ]]; then
     cp $HOMEDIRECTORY/nginx/objs/nginx /usr/sbin/nginx
 
     cat >modules.conf <<EOL
-load_module /lib/nginx/modules/ngx_http_auth_pam_module.so;
-load_module /lib/nginx/modules/ngx_http_cache_purge_module.so;
-load_module /lib/nginx/modules/ngx_http_dav_ext_module.so;
 load_module /lib/nginx/modules/ngx_http_echo_module.so;
 load_module /lib/nginx/modules/ngx_http_headers_more_filter_module.so;
 load_module /lib/nginx/modules/ngx_http_brotli_filter_module.so;
