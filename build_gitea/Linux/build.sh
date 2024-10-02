@@ -90,7 +90,7 @@ case $os in
     ;;
     * )
         wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
-        tar -xJvf $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz -C $MAKE_DIR
+        tar -xJvf $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz -C $DESTINATION
         export PATH=$PATH:$DESTINATION/node-$NODEJS_VERSION-$DISTRO/bin
     ;;
 esac
