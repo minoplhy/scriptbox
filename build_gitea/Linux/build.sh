@@ -97,7 +97,7 @@ esac
 
 # Golang
 wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz -O $DESTINATION/go$GO_VERSION.linux-amd64.tar.gz
-tar -C $DESTINATION -xJvf $DESTINATION/go$GO_VERSION.linux-amd64.tar.gz
+tar -C $DESTINATION -xzf $DESTINATION/go$GO_VERSION.linux-amd64.tar.gz
 export PATH=$PATH:$DESTINATION/go/bin
 
 # Gitea
