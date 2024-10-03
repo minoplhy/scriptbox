@@ -86,7 +86,7 @@ DISTRO=linux-x64
 
 case $os in
     "alpine")
-        apk add nodejs # NodeJS broken when install from binary
+        apk add nodejs npm # NodeJS broken when install from binary
     ;;
     * )
         wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
