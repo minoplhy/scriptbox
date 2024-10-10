@@ -17,9 +17,11 @@ curl https://raw.githubusercontent.com/minoplhy/scriptbox/main/nginx_build_scrip
 ```bash
 while [ ${#} -gt 0 ]; do
     case "$1" in
-        --no-modsecurity | -nm )            DISABLE_MODSECURITY=true;;  # Not include ModSecurity in building
-        --no-lua | -nl )                    DISABLE_LUA=true        ;;  # Not include Lua in building
-        --install | -i )                    INSTALL=true            ;;  # Install Nginx
+        --modsecurity )                     WITH_MODSECURITY=true       ;;  # Include ModSecurity in building
+        --lua )                             WITH_LUA=true               ;;  # Include Lua in building
+        --no-modsecurity | -nm )            WITH_MODSECURITY=false      ;;  # LEGACY: Not include ModSecurity in building
+        --no-lua | -nl )                    WITH_LUA=false              ;;  # LEGACY: Not include Lua in building
+        --install | -i )                    INSTALL=true                ;;  # Install Nginx
         --ssl=* )
             SSL_LIB="${1#*=}"
             SSL_LIB="${SSL_LIB,,}"
@@ -69,6 +71,7 @@ while [ ${#} -gt 0 ]; do
     esac
     shift
 done
+
 ```
 
 #### Note :  
@@ -194,5 +197,5 @@ upgrade() {
         eend $? "Upgrade failed"
 }
 
-modified from https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/main/nginx/nginx.initd
+# modified from https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/main/nginx/nginx.initd
 ```

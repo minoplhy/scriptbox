@@ -2,9 +2,11 @@
 
 while [ ${#} -gt 0 ]; do
     case "$1" in
-        --no-modsecurity | -nm )            DISABLE_MODSECURITY=true;;  # Not include ModSecurity in building
-        --no-lua | -nl )                    DISABLE_LUA=true        ;;  # Not include Lua in building
-        --install | -i )                    INSTALL=true            ;;  # Install Nginx
+        --modsecurity )                     WITH_MODSECURITY=true       ;;  # Include ModSecurity in building
+        --lua )                             WITH_LUA=true               ;;  # Include Lua in building
+        --no-modsecurity | -nm )            WITH_MODSECURITY=false      ;;  # LEGACY: Not include ModSecurity in building
+        --no-lua | -nl )                    WITH_LUA=false              ;;  # LEGACY: Not include Lua in building
+        --install | -i )                    INSTALL=true                ;;  # Install Nginx
         --ssl=* )
             SSL_LIB="${1#*=}"
             SSL_LIB="${SSL_LIB,,}"
@@ -58,6 +60,9 @@ done
 # if $SSL_LIB is null/empty
 SSL_LIB=${SSL_LIB:-"boringssl"}
 BUILD_TYPE=${BUILD_TYPE:-"nginx"}
+
+WITH_MODSECURITY=${WITH_MODSECURITY:-false}
+WITH_LUA=${WITH_LUA:-false}
 
 #################################
 ##                             ##
@@ -225,7 +230,7 @@ case $SSL_LIB in
 esac
 
 # ModSecurity
-if [ ! "${DISABLE_MODSECURITY}" == true ]; then
+if [ "${WITH_MODSECURITY}" == true ]; then
     git clone --depth=1 https://github.com/SpiderLabs/ModSecurity $HOMEDIRECTORY/ModSecurity
     cd $HOMEDIRECTORY/ModSecurity
     git submodule init
@@ -246,11 +251,11 @@ mkdir $HOMEDIRECTORY/nginx/mosc
 git clone https://github.com/openresty/headers-more-nginx-module $HOMEDIRECTORY/nginx/mosc/headers-more-nginx-module
 git clone https://github.com/openresty/echo-nginx-module $HOMEDIRECTORY/nginx/mosc/echo-nginx-module
 
-if [ ! "${DISABLE_MODSECURITY}" == true ]; then
+if [ "${WITH_MODSECURITY}" == true ]; then
     git clone https://github.com/SpiderLabs/ModSecurity-nginx $HOMEDIRECTORY/nginx/mosc/ModSecurity-nginx
 fi
 
-if [ ! "${DISABLE_LUA}" == true ]; then
+if [ "${WITH_LUA}" == true ]; then
     git clone https://github.com/vision5/ngx_devel_kit $HOMEDIRECTORY/nginx/mosc/ngx_devel_kit
     git clone https://github.com/openresty/lua-nginx-module $HOMEDIRECTORY/nginx/mosc/lua-nginx-module
 fi
@@ -266,7 +271,7 @@ cmake --build . --config Release --target brotlienc
 #
 # lua resty core,lrucache,luajit2
 
-if [ ! "${DISABLE_LUA}" == true ]; then
+if [ "${WITH_LUA}" == true ]; then
     mkdir -p $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
     sudo mkdir -p /opt/nginx-lua-module/
     git clone https://github.com/openresty/lua-resty-core $HOMEDIRECTORY/nginx-lua/lua-resty-core
@@ -365,7 +370,7 @@ case $SSL_LIB in
         ;;
 esac
 
-if [ ! "${DISABLE_MODSECURITY}" == true ]; then
+if [ "${WITH_MODSECURITY}" == true ]; then
     NGINX_CONFIG_PARAMS+=(
         --add-dynamic-module=mosc/ModSecurity-nginx
     )
@@ -373,7 +378,7 @@ fi
 
 # SomeHow, Nginx is broken when compiling as dynamic module with BoringSSL. 
 # Compiling as module seems to fix this.
-if [ ! "${DISABLE_LUA}" == true ]; then
+if [ "${WITH_LUA}" == true ]; then
     NGINX_CONFIG_PARAMS+=(
         --add-module=mosc/ngx_devel_kit
         --add-module=mosc/lua-nginx-module
@@ -419,7 +424,7 @@ load_module /lib/nginx/modules/ngx_http_brotli_filter_module.so;
 load_module /lib/nginx/modules/ngx_http_brotli_static_module.so;
 EOL
 
-    if [ ! "${DISABLE_MODSECURITY}" == true ]; then
+    if [ "${WITH_MODSECURITY}" == true ]; then
         cat >>modules.conf <<EOL
 load_module /lib/nginx/modules/ngx_http_modsecurity_module.so;
 EOL
