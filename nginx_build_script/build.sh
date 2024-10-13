@@ -203,8 +203,8 @@ case $SSL_LIB in
         # Golang
         GO_VERSION=1.23.1
 
-        wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz
-        tar -C $HOMEDIRECTORY -xzf go$GO_VERSION.linux-amd64.tar.gz
+        wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz -O $HOMEDIRECTORY/go$GO_VERSION.linux-amd64.tar.gz
+        tar -C $HOMEDIRECTORY -xzf $HOMEDIRECTORY/go$GO_VERSION.linux-amd64.tar.gz
         export PATH=$PATH:$HOMEDIRECTORY/go/bin
 
         git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
@@ -404,6 +404,7 @@ elif [ $SSL_LIB == "libressl" ]; then
 fi
 
 make
+exit_code=$?
 
 #################################
 ##                             ##
@@ -411,7 +412,7 @@ make
 ##                             ##
 #################################
 
-if [[ $Nginx_Install == "yes" || $INSTALL == true ]]; then
+if [[ "$Nginx_Install" == "yes" || "$INSTALL" == true ]] && [ "$exit_code" -eq 0 ]; then
     mkdir -p /lib/nginx/ && mkdir -p /lib/nginx/modules
     mkdir -p /etc/nginx && mkdir -p /etc/nginx/sites-enabled && mkdir -p /etc/nginx/modules-enabled
     cp $HOMEDIRECTORY/nginx/objs/*.so /lib/nginx/modules
@@ -431,6 +432,8 @@ EOL
     fi
 
     cp modules.conf /etc/nginx/modules-enabled
+elif [[ ! $exit_code -eq 0 ]]; then
+    printf "Nginx Build Failed..."
 else
-    echo "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : '$HOMEDIRECTORY'/nginx/objs"
+    printf "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : '%s'/nginx/objs" $HOMEDIRECTORY
 fi
