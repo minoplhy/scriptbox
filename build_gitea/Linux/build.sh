@@ -4,7 +4,6 @@ DESTINATION=~/gitea-binaries
 
 rm -rf $DESTINATION
 mkdir -p $DESTINATION
-cd $MAKE_DIR
 
 while [ ${#} -gt 0 ]; do
     case "$1" in
@@ -39,6 +38,17 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --patch=* )
+                PATCH_FILES="${1#*=}"
+            case $PATCH_FILES in
+                "")
+                    echo "ERROR: --patch= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,patch2.patch (Absolute path)
         *)
             ;;
     esac
@@ -123,10 +133,23 @@ then
     if git show-ref $GITEA_GIT_TAG --quiet;  then
         git checkout $GITEA_GIT_TAG
     else
-        echo -e "\nGIT_TAG variable doesn't match the repo tag/version. exit to prevent further issue." && exit 1 && rm -rf $MAKE_DIR
+        echo -e "\GITEA_GIT_TAG variable doesn't match the repo tag/version. exit to prevent further issue." && exit 1
     fi
 else
-    echo -e "GIT_TAG variable not found. will build on "main" branch."
+    echo -e "GITEA_GIT_TAG variable not found. will build on "main" branch."
+fi
+
+if [[ -n $PATCH_FILES ]]
+then
+    for patch in $(echo "$PATCH_FILES" | tr ',' '\n'); do
+        if git apply --check $patch; then
+            git apply $patch
+            printf "Info: PATCH '%s' applied successful!\n" $patch
+        else
+            printf "Error: PATCH '%s' cannot be applied! exiting...\n" $patch
+            exit 1
+        fi
+    done
 fi
 
 # Sometimes VPS Provider's CPU limitation is dick

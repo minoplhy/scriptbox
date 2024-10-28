@@ -15,27 +15,27 @@ curl -L https://github.com/minoplhy/scriptbox/raw/main/build_gitea/Linux/build.s
 ```bash
 while [ ${#} -gt 0 ]; do
     case "$1" in
-        --git-tag | -v) 
+        --git-tag | -v)
             shift
             GITEA_GIT_TAG=$1
             ;;                          # Gitea Git Tag
-        --golang-version | -g) 
+        --golang-version | -g)
             shift
-            GO_VERSION=$1 
+            GO_VERSION=$1
             ;;                          # GOLANG Version
-        --nodejs-version | -n) 
+        --nodejs-version | -n)
             shift
-            NODEJS_VERSION=$1 
+            NODEJS_VERSION=$1
             ;;                          # NodeJS Version
-        --static | -s) 
-            BUILD_STATIC=true 
+        --static | -s)
+            BUILD_STATIC=true
             ;;                          # Also Build Static Assets file
         --type=* )
             BUILD_TYPE="${1#*=}"
             BUILD_TYPE="${BUILD_TYPE,,}"
             case $BUILD_TYPE in
                 "gitea")                    BUILD_TYPE="gitea"      ;;
-                "forgejo")                  BUILD_TYPE="forgejo"  ;;
+                "forgejo")                  BUILD_TYPE="forgejo"    ;;
                 "")
                     echo "ERROR : --type= is empty!"
                     exit 1
@@ -46,6 +46,17 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --patch=* )
+                PATCH_FILES="${1#*=}"
+            case $PATCH_FILES in
+                "")
+                    echo "ERROR: --patch= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,patch2.patch (Absolute path)
         *)
             ;;
     esac
