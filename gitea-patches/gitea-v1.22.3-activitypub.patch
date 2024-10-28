@@ -1,0 +1,27 @@
+diff --git a/routers/api/v1/activitypub/person.go b/routers/api/v1/activitypub/person.go
+index 995a148f0b..10043fcbe1 100644
+--- a/routers/api/v1/activitypub/person.go
++++ b/routers/api/v1/activitypub/person.go
+@@ -8,6 +8,7 @@ import (
+ 	"net/http"
+ 	"strings"
+ 
++	user_model "code.gitea.io/gitea/models/user"
+ 	"code.gitea.io/gitea/modules/activitypub"
+ 	"code.gitea.io/gitea/modules/log"
+ 	"code.gitea.io/gitea/modules/setting"
+@@ -36,6 +37,14 @@ func Person(ctx *context.APIContext) {
+ 
+ 	// TODO: the setting.AppURL during the test doesn't follow the definition: "It always has a '/' suffix"
+ 	link := fmt.Sprintf("%s/api/v1/activitypub/user-id/%d", strings.TrimSuffix(setting.AppURL, "/"), ctx.ContextUser.ID)
++
++	// Fake 404 Error when user visiblity is private/limited
++	if ctx.ContextUser.Visibility.IsPrivate() || ctx.ContextUser.Visibility.IsLimited() {
++		// ctx.Error(status, title, obj)
++		ctx.Error(http.StatusNotFound, "", user_model.ErrUserNotExist{UID: ctx.ContextUser.ID}.Error())
++		return
++	}
++
+ 	person := ap.PersonNew(ap.IRI(link))
+ 
+ 	person.Name = ap.NaturalLanguageValuesNew()
