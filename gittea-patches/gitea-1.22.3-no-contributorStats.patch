@@ -1,0 +1,184 @@
+diff --git a/routers/web/repo/code_frequency.go b/routers/web/repo/code_frequency.go
+index c76f492da0..1933277468 100644
+--- a/routers/web/repo/code_frequency.go
++++ b/routers/web/repo/code_frequency.go
+@@ -4,38 +4,23 @@
+ package repo
+ 
+ import (
+-	"errors"
+ 	"net/http"
+ 
+-	"code.gitea.io/gitea/modules/base"
++	//"code.gitea.io/gitea/modules/base"
+ 	"code.gitea.io/gitea/services/context"
+-	contributors_service "code.gitea.io/gitea/services/repository"
+ )
+ 
+-const (
+-	tplCodeFrequency base.TplName = "repo/activity"
+-)
++// const (
++//	 tplCodeFrequency base.TplName = "repo/activity"
++// )
+ 
+ // CodeFrequency renders the page to show repository code frequency
+ func CodeFrequency(ctx *context.Context) {
+-	ctx.Data["Title"] = ctx.Tr("repo.activity.navbar.code_frequency")
+-
+-	ctx.Data["PageIsActivity"] = true
+-	ctx.Data["PageIsCodeFrequency"] = true
+-	ctx.PageData["repoLink"] = ctx.Repo.RepoLink
++	ctx.Status(http.StatusNotFound)
+ 
+-	ctx.HTML(http.StatusOK, tplCodeFrequency)
+ }
+ 
+ // CodeFrequencyData returns JSON of code frequency data
+ func CodeFrequencyData(ctx *context.Context) {
+-	if contributorStats, err := contributors_service.GetContributorStats(ctx, ctx.Cache, ctx.Repo.Repository, ctx.Repo.CommitID); err != nil {
+-		if errors.Is(err, contributors_service.ErrAwaitGeneration) {
+-			ctx.Status(http.StatusAccepted)
+-			return
+-		}
+-		ctx.ServerError("GetCodeFrequencyData", err)
+-	} else {
+-		ctx.JSON(http.StatusOK, contributorStats["total"].Weeks)
+-	}
++	ctx.Status(http.StatusNotFound)
+ }
+diff --git a/routers/web/repo/contributors.go b/routers/web/repo/contributors.go
+index 762fbf9379..739ee5948c 100644
+--- a/routers/web/repo/contributors.go
++++ b/routers/web/repo/contributors.go
+@@ -4,35 +4,22 @@
+ package repo
+ 
+ import (
+-	"errors"
+ 	"net/http"
+ 
+-	"code.gitea.io/gitea/modules/base"
++	//"code.gitea.io/gitea/modules/base"
+ 	"code.gitea.io/gitea/services/context"
+-	contributors_service "code.gitea.io/gitea/services/repository"
+ )
+ 
+-const (
+-	tplContributors base.TplName = "repo/activity"
+-)
++// const (
++//	 tplContributors base.TplName = "repo/activity"
++// )
+ 
+ // Contributors render the page to show repository contributors graph
+ func Contributors(ctx *context.Context) {
+-	ctx.Data["Title"] = ctx.Tr("repo.activity.navbar.contributors")
+-	ctx.Data["PageIsActivity"] = true
+-	ctx.Data["PageIsContributors"] = true
+-	ctx.HTML(http.StatusOK, tplContributors)
++	ctx.Status(http.StatusNotFound)
+ }
+ 
+ // ContributorsData renders JSON of contributors along with their weekly commit statistics
+ func ContributorsData(ctx *context.Context) {
+-	if contributorStats, err := contributors_service.GetContributorStats(ctx, ctx.Cache, ctx.Repo.Repository, ctx.Repo.CommitID); err != nil {
+-		if errors.Is(err, contributors_service.ErrAwaitGeneration) {
+-			ctx.Status(http.StatusAccepted)
+-			return
+-		}
+-		ctx.ServerError("GetContributorStats", err)
+-	} else {
+-		ctx.JSON(http.StatusOK, contributorStats)
+-	}
++	ctx.Status(http.StatusNotFound)
+ }
+diff --git a/routers/web/repo/recent_commits.go b/routers/web/repo/recent_commits.go
+index c158fb30b6..f58c0c60f6 100644
+--- a/routers/web/repo/recent_commits.go
++++ b/routers/web/repo/recent_commits.go
+@@ -4,38 +4,22 @@
+ package repo
+ 
+ import (
+-	"errors"
+ 	"net/http"
+ 
+-	"code.gitea.io/gitea/modules/base"
++	//"code.gitea.io/gitea/modules/base"
+ 	"code.gitea.io/gitea/services/context"
+-	contributors_service "code.gitea.io/gitea/services/repository"
+ )
+ 
+-const (
+-	tplRecentCommits base.TplName = "repo/activity"
+-)
++// const (
++// 	tplRecentCommits base.TplName = "repo/activity"
++// )
+ 
+ // RecentCommits renders the page to show recent commit frequency on repository
+ func RecentCommits(ctx *context.Context) {
+-	ctx.Data["Title"] = ctx.Tr("repo.activity.navbar.recent_commits")
+-
+-	ctx.Data["PageIsActivity"] = true
+-	ctx.Data["PageIsRecentCommits"] = true
+-	ctx.PageData["repoLink"] = ctx.Repo.RepoLink
+-
+-	ctx.HTML(http.StatusOK, tplRecentCommits)
++	ctx.Status(http.StatusNotFound)
+ }
+ 
+ // RecentCommitsData returns JSON of recent commits data
+ func RecentCommitsData(ctx *context.Context) {
+-	if contributorStats, err := contributors_service.GetContributorStats(ctx, ctx.Cache, ctx.Repo.Repository, ctx.Repo.CommitID); err != nil {
+-		if errors.Is(err, contributors_service.ErrAwaitGeneration) {
+-			ctx.Status(http.StatusAccepted)
+-			return
+-		}
+-		ctx.ServerError("RecentCommitsData", err)
+-	} else {
+-		ctx.JSON(http.StatusOK, contributorStats["total"].Weeks)
+-	}
++	ctx.Status(http.StatusNotFound)
+ }
+diff --git a/services/repository/contributors_graph.go b/services/repository/contributors_graph.go
+index b0748f8ee3..399aa2076d 100644
+--- a/services/repository/contributors_graph.go
++++ b/services/repository/contributors_graph.go
+@@ -80,34 +80,7 @@ func findLastSundayBeforeDate(dateStr string) (string, error) {
+ // GetContributorStats returns contributors stats for git commits for given revision or default branch
+ func GetContributorStats(ctx context.Context, cache cache.StringCache, repo *repo_model.Repository, revision string) (map[string]*ContributorData, error) {
+ 	// as GetContributorStats is resource intensive we cache the result
+-	cacheKey := fmt.Sprintf(contributorStatsCacheKey, repo.FullName(), revision)
+-	if !cache.IsExist(cacheKey) {
+-		genReady := make(chan struct{})
+-
+-		// dont start multiple async generations
+-		_, run := generateLock.Load(cacheKey)
+-		if run {
+-			return nil, ErrAwaitGeneration
+-		}
+-
+-		generateLock.Store(cacheKey, struct{}{})
+-		// run generation async
+-		go generateContributorStats(genReady, cache, cacheKey, repo, revision)
+-
+-		select {
+-		case <-time.After(awaitGenerationTime):
+-			return nil, ErrAwaitGeneration
+-		case <-genReady:
+-			// we got generation ready before timeout
+-			break
+-		}
+-	}
+-	// TODO: renew timeout of cache cache.UpdateTimeout(cacheKey, contributorStatsCacheTimeout)
+-	var res map[string]*ContributorData
+-	if _, cacheErr := cache.GetJSON(cacheKey, &res); cacheErr != nil {
+-		return nil, fmt.Errorf("cached error: %w", cacheErr.ToError())
+-	}
+-	return res, nil
++	return nil, nil
+ }
+ 
+ // getExtendedCommitStats return the list of *ExtendedCommitStats for the given revision
