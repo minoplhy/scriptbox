@@ -56,7 +56,7 @@ while [ ${#} -gt 0 ]; do
                 *)
                     ;;
             esac
-            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,patch2.patch (Absolute path)
+            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,https://patch (Absolute path)
         *)
             ;;
     esac

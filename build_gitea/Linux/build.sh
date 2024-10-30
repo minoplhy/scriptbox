@@ -48,7 +48,7 @@ while [ ${#} -gt 0 ]; do
                 *)
                     ;;
             esac
-            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,patch2.patch (Absolute path)
+            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,https://patch (Absolute path)
         *)
             ;;
     esac
@@ -133,7 +133,7 @@ then
     if git show-ref $GITEA_GIT_TAG --quiet;  then
         git checkout $GITEA_GIT_TAG
     else
-        echo -e "\GITEA_GIT_TAG variable doesn't match the repo tag/version. exit to prevent further issue." && exit 1
+        echo -e "\nGITEA_GIT_TAG variable doesn't match the repo tag/version. exit to prevent further issue." && exit 1
     fi
 else
     echo -e "GITEA_GIT_TAG variable not found. will build on "main" branch."
@@ -142,6 +142,23 @@ fi
 if [[ -n $PATCH_FILES ]]
 then
     for patch in $(echo "$PATCH_FILES" | tr ',' '\n'); do
+        case $patch in
+            http://*|https://*)
+                # The random part:
+                # https://stackoverflow.com/questions/2793812/generate-a-random-filename-in-unix-shell
+                NEW_PATCH_PATH=$DESTINATION/$(head /dev/urandom | tr -cd 'a-f0-9' | head -c 32)".patch"
+                
+                if wget $patch -O $NEW_PATCH_PATH; then
+                    printf "Info: '%s' has been downloaded. Filename: %s\n" $patch $NEW_PATCH_PATH
+                else
+                    printf "Info: '%s' Download failed! The task is aborted.\n" $patch
+                    exit 1
+                fi
+
+                patch=$NEW_PATCH_PATH   ;;
+            *) ;;
+        esac
+
         if git apply --check $patch; then
             git apply $patch
             printf "Info: PATCH '%s' applied successful!\n" $patch
