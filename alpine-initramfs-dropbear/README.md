@@ -21,7 +21,9 @@ Please install `dropbear` before continuing
 2. copy `authorized_keys` to `/etc/dropbear/authorized_keys`
 3. copy `features.d` to /`etc/mkinitfs/features.d`
 
-Note: if you're using Deeplerg/mk-f scripts before don't forget to change `unlock_disk` as i modified that one too.
+Note: 
+* if you're using Deeplerg/mk-f scripts before don't forget to change `unlock_disk` as i modified that one too.
+* If you're using `grub` make sure to install `syslinux` and possibly checkout `/etc/default/grub` and commented CMDLINE that's conflicted with `update-extlinux` like `GRUB_CMDLINE_LINUX_DEFAULT` and `default_kernel_opts` after that `grub-mkconfig -o /boot/grub/grub.cfg`
 
 ### /etc/mkinitfs.conf
 ```
