@@ -53,7 +53,7 @@ mkinitfs -i path/to/initramfs-dropbear <Kernel Version(from /lib/modules) incase
 
 ## Full Diff:
 ```diff
-325a326,367
+325a326,340
 > setup_dropbear() {
 > 	local port="${KOPT_dropbear}"
 > 	local keys=""
@@ -67,57 +67,39 @@ mkinitfs -i path/to/initramfs-dropbear <Kernel Version(from /lib/modules) incase
 > 	cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
 > 
 > 	dropbear -R -E -s -j -k -p $port
-> 
-> 	# [ -b /dev/mapper/${KOPT_cryptdm} ] 
-> 	#|| return 1
 > }
 > 
-> # A simple timer that do nothing but prevent any process to run
-> setup_dropbear_timer() {
-> 	timer=200
->     while [ $timer -gt 0 ]; do
->         printf "\r%d Press 'c' to cancel or 'p' to add 30 seconds " "$timer"
-> 		
->         if read -t 1 -r timer_control; then
-> 			case $timer_control in
-> 				"c") return 0 ;;
-> 				"p") timer=$((timer + 30)) ;;
-> 			esac
->         fi
-> 
-> 		# Check for /tmp/timer_kill to terminate this counter
-> 		if [ -f /tmp/timer_kill ]; then
-> 			return 0
-> 		fi
-> 
->         sleep 1
->         timer=$((timer - 1))
->     done
-> 	printf "\n"
-> }
-> 
-453c495
+453c468
 < 	s390x_net dasd ssh_key BOOTIF zfcp uevent_buf_size aoe aoe_iflist aoe_mtu wireguard"
 ---
 > 	s390x_net dasd ssh_key BOOTIF zfcp uevent_buf_size aoe aoe_iflist aoe_mtu wireguard dropbear"
-581c623,633
+581c596,604
 < if [ -n "$KOPT_cryptroot" ]; then
 ---
 > if [ -n "$KOPT_dropbear" ]; then
 >  	if [ -n "$KOPT_cryptroot" ]; then
 > 		configure_ip
 >  		setup_dropbear
-> 		setup_dropbear_timer
-> 		#|| echo "Failed to setup dropbear"
 >  	fi
 > fi
 > 
 > # Add Workaround for dropbear
 > if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
-1003c1055
+645a669,672
+> 	# Kill all struck nlplug-findfs jobs and dropbear
+> 	killall -9 nlplug-findfs
+> 	killall -9 dropbear
+> 
+715a743
+> 
+733a762,765
+> 
+> 	# Kill all struck nlplug-findfs jobs and dropbear
+> 	killall -9 nlplug-findfs
+> 	killall -9 dropbear
+1003c1035
 < reboot
 ---
 > reboot
 \ No newline at end of file
-
 ```
