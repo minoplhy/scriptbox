@@ -336,33 +336,6 @@ setup_dropbear() {
 	cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
 
 	dropbear -R -E -s -j -k -p $port
-
-	# [ -b /dev/mapper/${KOPT_cryptdm} ] 
-	#|| return 1
-}
-
-# A simple timer that do nothing but prevent any process to run
-setup_dropbear_timer() {
-	timer=200
-    while [ $timer -gt 0 ]; do
-        printf "\r%d Press 'c' to cancel or 'p' to add 30 seconds " "$timer"
-		
-        if read -t 1 -r timer_control; then
-			case $timer_control in
-				"c") return 0 ;;
-				"p") timer=$((timer + 30)) ;;
-			esac
-        fi
-
-		# Check for /tmp/timer_kill to terminate this counter
-		if [ -f /tmp/timer_kill ]; then
-			return 0
-		fi
-
-        sleep 1
-        timer=$((timer - 1))
-    done
-	printf "\n"
 }
 
 setup_wireguard() {
@@ -624,8 +597,6 @@ if [ -n "$KOPT_dropbear" ]; then
  	if [ -n "$KOPT_cryptroot" ]; then
 		configure_ip
  		setup_dropbear
-		setup_dropbear_timer
-		#|| echo "Failed to setup dropbear"
  	fi
 fi
 
@@ -694,6 +665,10 @@ if [ -n "$KOPT_root" ]; then
 	$MOCK nlplug-findfs $cryptopts -p /sbin/mdev ${KOPT_debug_init:+-d} \
 		${KOPT_uevent_buf_size:+-U $KOPT_uevent_buf_size} \
 		$KOPT_root
+
+	# Kill all struck nlplug-findfs jobs and dropbear
+	killall -9 nlplug-findfs
+	killall -9 dropbear
 
 	if [ "$SINGLEMODE" = "yes" ]; then
 		echo "Entering single mode. Type 'exit' to continue booting."
@@ -765,6 +740,7 @@ if [ -n "$KOPT_root" ]; then
 			$MOCK mount -o move $DIR $sysroot/$DIR
 		fi
 	done
+
 	$MOCK sync
 	exec switch_root $switch_root_opts $sysroot $chart_init "$KOPT_init" $KOPT_init_args
 	echo "initramfs emergency recovery shell launched"
@@ -783,6 +759,10 @@ $MOCK nlplug-findfs $cryptopts -p /sbin/mdev ${KOPT_debug_init:+-d} \
 	${KOPT_usbdelay:+-t $(( $KOPT_usbdelay * 1000 ))} \
 	${KOPT_uevent_buf_size:+-U $KOPT_uevent_buf_size} \
 	$repoopts -a "$ROOT"/tmp/apkovls
+
+	# Kill all struck nlplug-findfs jobs and dropbear
+	killall -9 nlplug-findfs
+	killall -9 dropbear
 eend $?
 
 # Setup network interfaces

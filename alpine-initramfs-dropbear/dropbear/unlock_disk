@@ -24,6 +24,6 @@ while [ ! -b /dev/mapper/${KOPT_cryptdm} ]; do
 	sleep 2
 done
 
-# make a new file to kill the timer
-echo "" > /tmp/timer_kill
+# Kill all struck nlplug-findfs jobs and dropbear
+killall -9 nlplug-findfs
 killall -9 dropbear

@@ -13,7 +13,7 @@ significant changes:
 
 * Add dropbear
 
-* Add dropbear session timer, if timeout/cancel normal decryption prompt would appear.
+* After unlocked, kill all remainings dropbear and nlplug-findfs process, so no struck process reached the system.
 
 Please install `dropbear` before continuing
 
