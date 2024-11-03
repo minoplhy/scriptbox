@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -- $(cat /proc/cmdline)
+
+for opt; do
+	case "$opt" in
+		cryptroot=*)
+			KOPT_cryptroot=${opt#cryptroot=}
+			continue
+			;;
+		cryptdm=*)
+			KOPT_cryptdm=${opt#cryptdm=}
+			continue
+			;;
+		root=*)
+			KOPT_root=${opt#root=}
+			continue
+			;;
+	esac
+done
+
+while [ ! -b /dev/mapper/${KOPT_cryptdm} ]; do
+	/sbin/nlplug-findfs -c ${KOPT_cryptroot} -m ${KOPT_cryptdm} ${KOPT_debug_init:+-d} -p /sbin/mdev ${KOPT_root}
+	sleep 2
+done
+
+# make a new file to kill the timer
+echo "" > /tmp/timer_kill
+killall -9 dropbear
