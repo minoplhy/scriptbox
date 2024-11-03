@@ -1,4 +1,4 @@
-# Alpine Dropbear Initramfs
+# Alpine Initramfs Dropbear
 This script took a huge references from:
 
 * [https://github.com/Deeplerg/fork-alpine-initramfs-dropbear](https://github.com/Deeplerg/fork-alpine-initramfs-dropbear)
@@ -24,20 +24,30 @@ Please install `dropbear` before continuing
 Note: if you're using Deeplerg/mk-f scripts before don't forget to change `unlock_disk` as i modified that one too.
 
 ### /etc/mkinitfs.conf
-```features="ata base ide scsi usb virtio ext4 cryptsetup keymap dropbear network"```
+```
+features="ata base ide scsi usb virtio ext4 cryptsetup keymap dropbear network"
+```
 * features+= `dropbear` `network`
 
 ### /etc/update-extlinux.conf
-```modules=sd-mod,usb-storage,ext4,ata_piix,virtio_net,e1000e,virtio_pci```
+```
+modules=sd-mod,usb-storage,ext4,ata_piix,virtio_net,e1000e,virtio_pci
+```
 * if network is not working (/sys/class/net/*/address not found etc.) try adding `e1000e` or `virtio_net` `virtio_pci`
 
-```default_kernel_opts="cryptroot=UUID=xxx cryptdm=root quiet rootfstype=ext4 dropbear=<dropbear_port> ip=<ip>>"```
+```
+default_kernel_opts="cryptroot=UUID=xxx cryptdm=root quiet rootfstype=ext4 dropbear=<dropbear_port> ip=<ip>>"
+```
 * ip= can be both static and dhcp(if supported) `ip=<ip>::<gw>:<mask>::<interface>` `ip=dhcp`
 
 
-```update-extlinux```
+```
+update-extlinux
+```
 
-```mkinitfs -i path/to/initramfs-dropbear <Kernel Version(from /lib/modules) incase in emergency CD>```
+```
+mkinitfs -i path/to/initramfs-dropbear <Kernel Version(from /lib/modules) incase in emergency CD>
+```
 
 ## Full Diff:
 ```diff
