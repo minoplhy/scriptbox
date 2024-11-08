@@ -39,7 +39,7 @@ while [ ${#} -gt 0 ]; do
             esac
             ;;
         --patch=* )
-                PATCH_FILES="${1#*=}"
+            PATCH_FILES="${1#*=}"
             case $PATCH_FILES in
                 "")
                     echo "ERROR: --patch= is empty!"
@@ -47,8 +47,23 @@ while [ ${#} -gt 0 ]; do
                     ;;
                 *)
                     ;;
-            esac
-            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,https://patch (Absolute path)
+            esac                                                    # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,https://patch (Absolute path)
+            ;;
+        --build-arch=* )
+            BUILD_ARCH="${1#*=}"
+            case $BUILD_ARCH in
+                "x86_64")   BUILD_ARCH="x86_64"          ;;
+                "aarch64")  BUILD_ARCH="aarch64"         ;;
+                "")
+                    echo "ERROR : --build-arch= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR :  Vaild values for --build-arch are -> x86_64, aarch64"
+                    exit 1
+                    ;;
+            esac                                                    # Architect for your binary to be build. This is for Cross-compiling etc.
+            ;;
         *)
             ;;
     esac
@@ -60,12 +75,52 @@ NODEJS_VERSION=${NODEJS_VERSION:-"v20.17.0"}
 GO_VERSION=${GO_VERSION:-"1.23.2"}
 BUILD_TYPE=${BUILD_TYPE:-"gitea"}
 
+# OS
+GOOS=linux
+NODEJS_DISTRO=linux
+
+# ARCHITECT
+
+# This Base Architect is to detect "build" build machine Architect. NOT BUILD ARCHITECT
+ARCH=${ARCH:-$(uname -m)}
+case $ARCH in
+    "x86_64")
+        NODEJS_ARCH=x64
+        BASE_GOARCH=amd64
+        ;;
+    "aarch64")
+        NODEJS_ARCH=arm64
+        BASE_GOARCH=arm64
+        ;;
+    *)
+        printf "\nPANIC: Arch %s is not supported! exit...\n" $ARCH
+        exit 1
+        ;;
+esac
+
+# This define the architect for Build to be. AKA cross-compile stuff.
+BUILD_ARCH=${BUILD_ARCH:-$(uname -m)}
+case $BUILD_ARCH in
+    "x86_64")
+        GOARCH=amd64
+        ;;
+    "aarch64")
+        GOARCH=arm64
+        ;;
+    *)
+        printf "PANIC: Build Arch %s is not supported! exit...\n" $BUILD_ARCH
+        exit 1
+        ;;
+esac
+
+printf "INFO: Build Architect: %s\nINFO: Machine Architect: %s\n" $BUILD_ARCH $ARCH
+
 # GITEA_GIT_TAG is being process below
 
 # Install Dependencies
 
-os=$(grep '^ID=' /etc/os-release | cut -d'=' -f2)
-case $os in
+DISTRO=$(grep '^ID=' /etc/os-release | cut -d'=' -f2)
+case $DISTRO in
     "debian" | "ubuntu" )
         sudo apt update
         sudo apt install -y \
@@ -87,27 +142,25 @@ case $os in
             make
         ;;
     * )
-        echo "ERROR: the os detected is not supported. The script will run as is."
+        echo "ERROR: the distro detected is not supported. The script will run as is."
         ;;
 esac
 
 # NodeJS
-DISTRO=linux-x64
-
-case $os in
+case $DISTRO in
     "alpine")
-        apk add nodejs npm # NodeJS broken when install from binary
+        apk add nodejs npm # NodeJS in alpine required complex build to be done. For peace of mind  i'll use apk until i see better options. 
     ;;
     * )
-        wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$DISTRO.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
+        wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$NODEJS_DISTRO-$NODEJS_ARCH.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
         tar -xJvf $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz -C $DESTINATION
         export PATH=$PATH:$DESTINATION/node-$NODEJS_VERSION-$DISTRO/bin
     ;;
 esac
 
 # Golang
-wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz -O $DESTINATION/go$GO_VERSION.linux-amd64.tar.gz
-tar -C $DESTINATION -xzf $DESTINATION/go$GO_VERSION.linux-amd64.tar.gz
+wget https://go.dev/dl/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz -O $DESTINATION/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz
+tar -C $DESTINATION -xzf $DESTINATION/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz
 export PATH=$PATH:$DESTINATION/go/bin
 
 # Gitea
@@ -172,8 +225,8 @@ fi
 # Sometimes VPS Provider's CPU limitation is dick
 export LDFLAGS="-X \"code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/\" -X \"code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini\""
 export TAGS="bindata sqlite sqlite_unlock_notify"
-export GOOS=linux
-export GOARCH=amd64
+export GOOS=$GOOS
+export GOARCH=$GOARCH
 
 make build
 mv gitea $DESTINATION/gitea

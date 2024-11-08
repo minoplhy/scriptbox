@@ -47,7 +47,7 @@ while [ ${#} -gt 0 ]; do
             esac
             ;;
         --patch=* )
-                PATCH_FILES="${1#*=}"
+            PATCH_FILES="${1#*=}"
             case $PATCH_FILES in
                 "")
                     echo "ERROR: --patch= is empty!"
@@ -55,8 +55,23 @@ while [ ${#} -gt 0 ]; do
                     ;;
                 *)
                     ;;
-            esac
-            ;;                                          # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,https://patch (Absolute path)
+            esac                                                    # Add Patches to your Gitea build. Format -> patch1.patch or patch1.patch,https://patch (Absolute path)
+            ;;
+        --build-arch=* )
+            BUILD_ARCH="${1#*=}"
+            case $BUILD_ARCH in
+                "x86_64")   BUILD_ARCH="x86_64"          ;;
+                "aarch64")  BUILD_ARCH="aarch64"         ;;
+                "")
+                    echo "ERROR : --build-arch= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    echo "ERROR :  Vaild values for --build-arch are -> x86_64, aarch64"
+                    exit 1
+                    ;;
+            esac                                                    # Architect for your binary to be build. This is for Cross-compiling etc.
+            ;;
         *)
             ;;
     esac
@@ -66,4 +81,5 @@ done
 
 # Known Issues
 
+- For Alpine Linux: to get `npm` installation working, please ensure community package is enable in `/etc/apk/repositories`
 - This script required root privileges because of dependencies installation, which is hard to avoid.
