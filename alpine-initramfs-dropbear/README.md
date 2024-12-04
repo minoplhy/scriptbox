@@ -18,6 +18,7 @@ significant changes:
 Please install `dropbear` before continuing
 
 1. copy `dropbear/unlock_disk` to `/etc/dropbear/unlock_disk`
+    * Also Make sure `/etc/dropbear/unlock_disk` is executable! else dropbear will exit with "failed child"W
 2. copy `authorized_keys` to `/etc/dropbear/authorized_keys`
 3. copy `features.d` to /`etc/mkinitfs/features.d`
 
