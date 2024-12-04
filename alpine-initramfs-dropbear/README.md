@@ -55,51 +55,42 @@ mkinitfs -i path/to/initramfs-dropbear <Kernel Version(from /lib/modules) incase
 ```diff
 325a326,340
 > setup_dropbear() {
-> 	local port="${KOPT_dropbear}"
-> 	local keys=""
+>       local port="${KOPT_dropbear}"
+>       local keys=""
 > 
-> 	# set the unlock_disc script as shell for root
-> 	sed -i 's|\(root:x:0:0:root:/root:\).*$|\1/etc/dropbear/unlock_disk|' /etc/passwd
-> 	echo '/etc/dropbear/unlock_disk' > /etc/shells
+>       # set the unlock_disc script as shell for root
+>       sed -i 's|\(root:x:0:0:root:/root:\).*$|\1/etc/dropbear/unlock_disk|' /etc/passwd
+>       echo '/etc/dropbear/unlock_disk' > /etc/shells
 > 
-> 	# transfer authorized_keys
-> 	mkdir /root/.ssh
-> 	cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
+>       # transfer authorized_keys
+>       mkdir /root/.ssh
+>       cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
 > 
-> 	dropbear -R -E -s -j -k -p $port
+>       dropbear -R -E -s -j -k -p $port
 > }
 > 
-453c468
-< 	s390x_net dasd ssh_key BOOTIF zfcp uevent_buf_size aoe aoe_iflist aoe_mtu wireguard"
----
-> 	s390x_net dasd ssh_key BOOTIF zfcp uevent_buf_size aoe aoe_iflist aoe_mtu wireguard dropbear"
-581c596,604
+512a528
+>       dropbear
+641c657,665
 < if [ -n "$KOPT_cryptroot" ]; then
 ---
 > if [ -n "$KOPT_dropbear" ]; then
->  	if [ -n "$KOPT_cryptroot" ]; then
-> 		configure_ip
->  		setup_dropbear
->  	fi
+>       if [ -n "$KOPT_cryptroot" ]; then
+>               configure_ip
+>               setup_dropbear
+>       fi
 > fi
 > 
 > # Add Workaround for dropbear
 > if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
-645a669,672
-> 	# Kill all struck nlplug-findfs jobs and dropbear
-> 	killall -9 nlplug-findfs
-> 	killall -9 dropbear
+705a730,733
+>       # Kill all struck nlplug-findfs jobs and dropbear
+>       killall -9 nlplug-findfs
+>       killall -9 dropbear
 > 
-715a743
+781a810,813
 > 
-733a762,765
-> 
-> 	# Kill all struck nlplug-findfs jobs and dropbear
-> 	killall -9 nlplug-findfs
-> 	killall -9 dropbear
-1003c1035
-< reboot
----
-> reboot
-\ No newline at end of file
+>       # Kill all struck nlplug-findfs jobs and dropbear
+>       killall -9 nlplug-findfs
+>       killall -9 dropbear
 ```
