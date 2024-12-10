@@ -269,6 +269,82 @@ configure_ip() {
 	MAC_ADDRESS=$(cat "$ROOT/sys/class/net/$iface/address")
 }
 
+# configure ipv6 on initramfs
+# Valid syntaxes:
+#   ip6=client-ip/gateway-ip/interface/dns1/dns2
+#
+configure_ip6() {
+	[ -n "$MAC_ADDRESS" ] && return
+
+	$MOCK modprobe -a ipv6
+
+	local IFS='/'
+	# shellcheck disable=SC2086
+	set -- ${KOPT_ip6}
+	unset IFS
+
+	local client6_ip="$1"
+	local gw6_ip="$2"
+	local iface="$3"
+    local dns1="$4"
+    local dns2="$5"
+
+	if [ -e "$ROOT"/etc/mactab ]; then
+		$MOCK nameif -s
+	fi
+
+	if [ -z "$iface" ] && [ -n "$KOPT_BOOTIF" ]; then
+		mac=$(printf "%s\n" "$KOPT_BOOTIF"|sed 's/^01-//;s/-/:/g')
+		iface=$(grep -l "$mac" "$ROOT"/sys/class/net/*/address | awk -F/ '{print $(NF-1); exit}')
+	fi
+
+	# Bring interface up
+	if [ -n "$iface" ]; then
+		$MOCK ip link set dev "$iface" up
+		sleep 3 # wait for interface to fully up.
+	fi
+
+	if [ -z "$iface" ]; then
+		# shellcheck disable=SC2046
+		set -- $(ethernets)
+		for i in "$@"; do
+			$MOCK ip link set dev "$i" up
+		done
+		iface=$(find_first_interface_up "$@") || iface="$1"
+
+		# we will use the found interface later so lets keep it up
+		for i in "$@"; do
+			if [ "$i" != "$iface" ]; then
+				$MOCK ip link set dev "$i" down
+			fi
+		done
+	fi
+	
+	if [ -z "$iface" ]; then
+		echo "ERROR: IP requested but no network interface was found"
+		return 1
+	fi
+
+	if [ -z "$client6_ip" ] && [ -z "$netmask" ]; then
+		return
+	fi
+	ebegin "Setting IP ($iface)"
+
+	if ip -6 addr add $client6_ip dev $iface; then
+		# this is definitely not required by all ipv6 implementation
+		# but it's better to keep working imo for.
+		[ -z "$gw6_ip" ] || ip route add "$client6_ip" via "$gw6_ip" dev "$iface"
+	fi
+	eend $?
+
+	# Never executes if variables are empty
+	for i in $dns1 $dns2; do
+		echo "nameserver $i" >> /etc/resolv.conf
+	done
+
+	MAC_ADDRESS=$(cat "$ROOT/sys/class/net/$iface/address")
+}
+
 # relocate mountpoint according given fstab and set mount options
 remount_fstab_entry() {
 	local fstab="${1}"
@@ -321,21 +397,6 @@ setup_nbd() {
 		nbd-client "$server" "$port" "$device" && n=$((n+1))
 	done
 	[ "$n" != 0 ] || return 1
-}
-
-setup_dropbear() {
-	local port="${KOPT_dropbear}"
-	local keys=""
-
-	# set the unlock_disc script as shell for root
-	sed -i 's|\(root:x:0:0:root:/root:\).*$|\1/etc/dropbear/unlock_disk|' /etc/passwd
-	echo '/etc/dropbear/unlock_disk' > /etc/shells
-
-	# transfer authorized_keys
-	mkdir /root/.ssh
-	cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
-
-	dropbear -R -E -s -j -k -p $port
 }
 
 setup_wireguard() {
@@ -526,7 +587,7 @@ myopts="BOOTIF
 	usrflags
 	wireguard
 	zfcp
-	dropbear
+	ip6
 "
 
 for opt; do
@@ -655,15 +716,7 @@ if grep -q VMware "$ROOT"/sys/devices/virtual/dmi/id/sys_vendor 2>/dev/null; the
 	$MOCK modprobe -a ata_piix mptspi sr-mod
 fi
 
-if [ -n "$KOPT_dropbear" ]; then
- 	if [ -n "$KOPT_cryptroot" ]; then
-		configure_ip
- 		setup_dropbear
- 	fi
-fi
-
-# Add Workaround for dropbear
-if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
+if [ -n "$KOPT_cryptroot" ]; then
 	cryptopts="-c ${KOPT_cryptroot}"
 	if [ "$KOPT_cryptdiscards" = "yes" ]; then
 		cryptopts="$cryptopts -D"
@@ -727,10 +780,6 @@ if [ -n "$KOPT_root" ]; then
 	$MOCK nlplug-findfs $cryptopts -p /sbin/mdev ${KOPT_debug_init:+-d} \
 		${KOPT_uevent_buf_size:+-U $KOPT_uevent_buf_size} \
 		$KOPT_root
-
-	# Kill all struck nlplug-findfs jobs and dropbear
-	killall -9 nlplug-findfs
-	killall -9 dropbear
 
 	if [ "$SINGLEMODE" = "yes" ]; then
 		echo "Entering single mode. Type 'exit' to continue booting."
@@ -815,10 +864,6 @@ $MOCK nlplug-findfs $cryptopts -p /sbin/mdev ${KOPT_debug_init:+-d} \
 	${KOPT_usbdelay:+-t $(( $KOPT_usbdelay * 1000 ))} \
 	${KOPT_uevent_buf_size:+-U $KOPT_uevent_buf_size} \
 	$repoopts -a "$ROOT"/tmp/apkovls
-	
-    # Kill all struck nlplug-findfs jobs and dropbear
-	killall -9 nlplug-findfs
-	killall -9 dropbear
 eend $?
 
 # Setup network interfaces

@@ -1,0 +1,118 @@
+271a272,347
+> # configure ipv6 on initramfs
+> # Valid syntaxes:
+> #   ip6=client-ip/gateway-ip/interface/dns1/dns2
+> #
+> configure_ip6() {
+> 	[ -n "$MAC_ADDRESS" ] && return
+> 
+> 	$MOCK modprobe -a ipv6
+> 
+> 	local IFS='/'
+> 	# shellcheck disable=SC2086
+> 	set -- ${KOPT_ip6}
+> 	unset IFS
+> 
+> 	local client6_ip="$1"
+> 	local gw6_ip="$2"
+> 	local iface="$3"
+> 	local dns1="$4"
+> 	local dns2="$5"
+> 
+> 	if [ -e "$ROOT"/etc/mactab ]; then
+> 		$MOCK nameif -s
+> 	fi
+> 
+> 	if [ -z "$iface" ] && [ -n "$KOPT_BOOTIF" ]; then
+> 		mac=$(printf "%s\n" "$KOPT_BOOTIF"|sed 's/^01-//;s/-/:/g')
+> 		iface=$(grep -l "$mac" "$ROOT"/sys/class/net/*/address | awk -F/ '{print $(NF-1); exit}')
+> 	fi
+> 
+> 	# Bring interface up
+> 	if [ -n "$iface" ]; then
+> 		$MOCK ip link set dev "$iface" up
+> 		sleep 3 # wait for interface to fully up.
+> 	fi
+> 
+> 	if [ -z "$iface" ]; then
+> 		# shellcheck disable=SC2046
+> 		set -- $(ethernets)
+> 		for i in "$@"; do
+> 			$MOCK ip link set dev "$i" up
+> 		done
+> 		iface=$(find_first_interface_up "$@") || iface="$1"
+> 
+> 		# we will use the found interface later so lets keep it up
+> 		for i in "$@"; do
+> 			if [ "$i" != "$iface" ]; then
+> 				$MOCK ip link set dev "$i" down
+> 			fi
+> 		done
+> 	fi
+> 	
+> 	if [ -z "$iface" ]; then
+> 		echo "ERROR: IP requested but no network interface was found"
+> 		return 1
+> 	fi
+> 
+> 	if [ -z "$client6_ip" ] && [ -z "$netmask" ]; then
+> 		return
+> 	fi
+> 	ebegin "Setting IP ($iface)"
+> 
+> 	if ip -6 addr add $client6_ip dev $iface; then
+> 		# this is definitely not required by all ipv6 implementation
+> 		# but it's better to keep working imo for.
+> 		[ -z "$gw6_ip" ] || ip route add "$client6_ip" via "$gw6_ip" dev "$iface"
+> 	fi
+> 	eend $?
+> 
+> 	# Never executes if variables are empty
+> 	for i in $dns1 $dns2; do
+> 		echo "nameserver $i" >> /etc/resolv.conf
+> 	done
+> 
+> 	MAC_ADDRESS=$(cat "$ROOT/sys/class/net/$iface/address")
+> }
+> 
+325a402,416
+> setup_dropbear() {
+> 	local port="${KOPT_dropbear}"
+> 	local keys=""
+> 
+> 	# set the unlock_disc script as shell for root
+> 	sed -i 's|\(root:x:0:0:root:/root:\).*$|\1/etc/dropbear/unlock_disk|' /etc/passwd
+> 	echo '/etc/dropbear/unlock_disk' > /etc/shells
+> 
+> 	# transfer authorized_keys
+> 	mkdir /root/.ssh
+> 	cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
+> 
+> 	dropbear -R -E -s -j -k -p $port
+> }
+> 
+513a605,606
+> 	dropbear
+> 	ip6
+642c735,743
+< if [ -n "$KOPT_cryptroot" ]; then
+---
+> if [ -n "$KOPT_dropbear" ]; then
+>  	if [ -n "$KOPT_cryptroot" ]; then
+> 		configure_ip6
+>  		setup_dropbear
+>  	fi
+> fi
+> 
+> # Add Workaround for dropbear
+> if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
+706a808,811
+> 	# Kill all struck nlplug-findfs jobs and dropbear
+> 	killall -9 nlplug-findfs
+> 	killall -9 dropbear
+> 
+789a895,898
+> 	
+>     # Kill all struck nlplug-findfs jobs and dropbear
+> 	killall -9 nlplug-findfs
+> 	killall -9 dropbear

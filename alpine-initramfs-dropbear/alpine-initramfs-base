@@ -323,21 +323,6 @@ setup_nbd() {
 	[ "$n" != 0 ] || return 1
 }
 
-setup_dropbear() {
-	local port="${KOPT_dropbear}"
-	local keys=""
-
-	# set the unlock_disc script as shell for root
-	sed -i 's|\(root:x:0:0:root:/root:\).*$|\1/etc/dropbear/unlock_disk|' /etc/passwd
-	echo '/etc/dropbear/unlock_disk' > /etc/shells
-
-	# transfer authorized_keys
-	mkdir /root/.ssh
-	cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
-
-	dropbear -R -E -s -j -k -p $port
-}
-
 setup_wireguard() {
 	$MOCK modprobe -q wireguard || return 1
 	local IFS=';'
@@ -526,7 +511,6 @@ myopts="BOOTIF
 	usrflags
 	wireguard
 	zfcp
-	dropbear
 "
 
 for opt; do
@@ -655,15 +639,7 @@ if grep -q VMware "$ROOT"/sys/devices/virtual/dmi/id/sys_vendor 2>/dev/null; the
 	$MOCK modprobe -a ata_piix mptspi sr-mod
 fi
 
-if [ -n "$KOPT_dropbear" ]; then
- 	if [ -n "$KOPT_cryptroot" ]; then
-		configure_ip
- 		setup_dropbear
- 	fi
-fi
-
-# Add Workaround for dropbear
-if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
+if [ -n "$KOPT_cryptroot" ]; then
 	cryptopts="-c ${KOPT_cryptroot}"
 	if [ "$KOPT_cryptdiscards" = "yes" ]; then
 		cryptopts="$cryptopts -D"
@@ -727,10 +703,6 @@ if [ -n "$KOPT_root" ]; then
 	$MOCK nlplug-findfs $cryptopts -p /sbin/mdev ${KOPT_debug_init:+-d} \
 		${KOPT_uevent_buf_size:+-U $KOPT_uevent_buf_size} \
 		$KOPT_root
-
-	# Kill all struck nlplug-findfs jobs and dropbear
-	killall -9 nlplug-findfs
-	killall -9 dropbear
 
 	if [ "$SINGLEMODE" = "yes" ]; then
 		echo "Entering single mode. Type 'exit' to continue booting."
@@ -815,10 +787,6 @@ $MOCK nlplug-findfs $cryptopts -p /sbin/mdev ${KOPT_debug_init:+-d} \
 	${KOPT_usbdelay:+-t $(( $KOPT_usbdelay * 1000 ))} \
 	${KOPT_uevent_buf_size:+-U $KOPT_uevent_buf_size} \
 	$repoopts -a "$ROOT"/tmp/apkovls
-	
-    # Kill all struck nlplug-findfs jobs and dropbear
-	killall -9 nlplug-findfs
-	killall -9 dropbear
 eend $?
 
 # Setup network interfaces

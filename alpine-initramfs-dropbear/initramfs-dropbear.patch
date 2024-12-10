@@ -1,0 +1,40 @@
+325a326,340
+> setup_dropbear() {
+> 	local port="${KOPT_dropbear}"
+> 	local keys=""
+> 
+> 	# set the unlock_disc script as shell for root
+> 	sed -i 's|\(root:x:0:0:root:/root:\).*$|\1/etc/dropbear/unlock_disk|' /etc/passwd
+> 	echo '/etc/dropbear/unlock_disk' > /etc/shells
+> 
+> 	# transfer authorized_keys
+> 	mkdir /root/.ssh
+> 	cp /etc/dropbear/authorized_keys /root/.ssh/authorized_keys
+> 
+> 	dropbear -R -E -s -j -k -p $port
+> }
+> 
+513a529
+> 	dropbear
+642c658,666
+< if [ -n "$KOPT_cryptroot" ]; then
+---
+> if [ -n "$KOPT_dropbear" ]; then
+>  	if [ -n "$KOPT_cryptroot" ]; then
+> 		configure_ip
+>  		setup_dropbear
+>  	fi
+> fi
+> 
+> # Add Workaround for dropbear
+> if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
+706a731,734
+> 	# Kill all struck nlplug-findfs jobs and dropbear
+> 	killall -9 nlplug-findfs
+> 	killall -9 dropbear
+> 
+789a818,821
+> 	
+>     # Kill all struck nlplug-findfs jobs and dropbear
+> 	killall -9 nlplug-findfs
+> 	killall -9 dropbear
