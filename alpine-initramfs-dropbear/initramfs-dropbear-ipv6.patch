@@ -1,4 +1,4 @@
-271a272,347
+271a272,350
 > # configure ipv6 on initramfs
 > # Valid syntaxes:
 > #   ip6=client-ip/gateway-ip/interface/dns1/dns2
@@ -62,8 +62,11 @@
 > 
 > 	if ip -6 addr add $client6_ip dev $iface; then
 > 		# this is definitely not required by all ipv6 implementation
-> 		# but it's better to keep working imo for.
-> 		[ -z "$gw6_ip" ] || ip route add "$client6_ip" via "$gw6_ip" dev "$iface"
+> 		# but it's better to keep things working for all deployment possible
+> 		#
+> 		# metric is mandatory!
+> 		[ -z "$gw6_ip" ] || ip -6 route add "$gw6_ip" dev $iface metric 256
+> 		[ -z "$gw6_ip" ] || ip -6 route add ::0/0 via "$gw6_ip" dev "$iface" metric 128
 > 	fi
 > 	eend $?
 > 
@@ -75,7 +78,7 @@
 > 	MAC_ADDRESS=$(cat "$ROOT/sys/class/net/$iface/address")
 > }
 > 
-325a402,416
+325a405,419
 > setup_dropbear() {
 > 	local port="${KOPT_dropbear}"
 > 	local keys=""
@@ -91,10 +94,10 @@
 > 	dropbear -R -E -s -j -k -p $port
 > }
 > 
-513a605,606
+513a608,609
 > 	dropbear
 > 	ip6
-642c735,743
+642c738,746
 < if [ -n "$KOPT_cryptroot" ]; then
 ---
 > if [ -n "$KOPT_dropbear" ]; then
@@ -106,12 +109,12 @@
 > 
 > # Add Workaround for dropbear
 > if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
-706a808,811
+706a811,814
 > 	# Kill all struck nlplug-findfs jobs and dropbear
 > 	killall -9 nlplug-findfs
 > 	killall -9 dropbear
 > 
-789a895,898
+789a898,901
 > 	
 >     # Kill all struck nlplug-findfs jobs and dropbear
 > 	killall -9 nlplug-findfs

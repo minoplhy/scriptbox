@@ -286,8 +286,8 @@ configure_ip6() {
 	local client6_ip="$1"
 	local gw6_ip="$2"
 	local iface="$3"
-    local dns1="$4"
-    local dns2="$5"
+    	local dns1="$4"
+    	local dns2="$5"
 
 	if [ -e "$ROOT"/etc/mactab ]; then
 		$MOCK nameif -s
@@ -331,9 +331,12 @@ configure_ip6() {
 	ebegin "Setting IP ($iface)"
 
 	if ip -6 addr add $client6_ip dev $iface; then
-		# this is definitely not required by all ipv6 implementation
-		# but it's better to keep working imo for.
-		[ -z "$gw6_ip" ] || ip route add "$client6_ip" via "$gw6_ip" dev "$iface"
+	        # this is definitely not required by all ipv6 implementation                     
+        	# but it's better to keep things working for all deployment possible             
+        	#                                                                                
+       		# metric is mandatory!                                                           
+        	[ -z "$gw6_ip" ] || ip -6 route add "$gw6_ip" dev $iface metric 256              
+        	[ -z "$gw6_ip" ] || ip -6 route add ::0/0 via "$gw6_ip" dev "$iface" metric 128
 	fi
 	eend $?
 
