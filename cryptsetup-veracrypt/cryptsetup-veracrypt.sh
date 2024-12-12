@@ -45,20 +45,31 @@ prompting() {
     printf "\nSelect Container Name: "
     read container_name
 
+    MOUNT_PARAMETERS+="-o "
     case $MODE in
-        "mount") mount_permission_prompt && mount;;
+        "mount") mount_parameters_prompt && mount;;
         "unmount") unmount;;
     esac
 }
 
-mount_permission_prompt() {
-    printf "Currently the Mount Parameters is hardcoded, so you have not much choice!\n"
-    printf "Mounting with '-o umask=000' (Y/n)? "
-    read mount_permission
-    case $mount_permission in
-        "Y"|"y") MOUNT_PARAMETERS+="-o umask=000"   ;;
-        "N"|"n")                                    ;;
-        *)       mount_permission_prompt            ;;
+mount_parameters_prompt() {
+    printf "Mounting with Permission?\n"
+    printf "000 - umask 000\nuser/<username> - owner of this device\n"
+    read mount_parameters_ask
+    case $mount_parameters_ask in
+        "000")  MOUNT_PARAMETERS+="umask=000"           ;;
+        user/*)
+                local user="${mount_parameters_ask#user/}"
+                local user_uid=$(id -u "$user" 2>/dev/null)
+                local group_uid=$(id -g "$user" 2>/dev/null)
+
+                if [ $? -eq 0 ] && [ -n "$user_uid" ] && [ -n "$group_uid" ]; then
+                    MOUNT_PARAMETERS+="gid=$user_uid,uid=$group_uid"
+                else
+                    printf "User id for %s not found!\n" $user
+                    mount_parameters_prompt
+                fi                                      ;;
+        *)      mount_parameters_prompt                 ;;
     esac
 }
 
