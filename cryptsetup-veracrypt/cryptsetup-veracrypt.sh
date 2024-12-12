@@ -64,7 +64,8 @@ mount_parameters_prompt() {
                 local group_uid=$(id -g "$user" 2>/dev/null)
 
                 if [ $? -eq 0 ] && [ -n "$user_uid" ] && [ -n "$group_uid" ]; then
-                    MOUNT_PARAMETERS+="gid=$user_uid,uid=$group_uid"
+                    # mount with owner,group and umask is owner r/w/e only
+                    MOUNT_PARAMETERS+="gid=$user_uid,uid=$group_uid,umask=077"
                 else
                     printf "User id for %s not found!\n" $user
                     mount_parameters_prompt
