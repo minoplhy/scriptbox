@@ -1,8 +1,8 @@
 diff --git a/routers/web/web.go b/routers/web/web.go
-index aa37d4dc10..de79b00b07 100644
+index bd2da620e2..733f84cd3f 100644
 --- a/routers/web/web.go
 +++ b/routers/web/web.go
-@@ -1456,18 +1456,6 @@ func registerRoutes(m *web.Router) {
+@@ -1436,18 +1436,6 @@ func registerRoutes(m *web.Route) {
  	m.Group("/{username}/{reponame}/activity", func() {
  		m.Get("", repo.Activity)
  		m.Get("/{period}", repo.Activity)
@@ -19,5 +19,5 @@ index aa37d4dc10..de79b00b07 100644
 -			m.Get("/data", repo.RecentCommitsData)
 -		})
  	},
- 		optSignIn, context.RepoAssignment, context.RequireRepoReaderOr(unit.TypePullRequests, unit.TypeIssues, unit.TypeReleases),
+ 		ignSignIn, context.RepoAssignment, context.RequireRepoReaderOr(unit.TypePullRequests, unit.TypeIssues, unit.TypeReleases),
  		context.RepoRef(), repo.MustBeNotEmpty,
