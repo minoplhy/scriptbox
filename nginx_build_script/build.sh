@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Check for empty variable input from CLI arguments
+check_empty() {
+    VARIABLE="$1"
+    VARIABLE_NAME="$2"
+    case $VARIABLE in
+        "")
+            echo "ERROR: ${VARIABLE_NAME} is empty!"
+            exit 1
+            ;;
+        *)
+            ;;
+        esac
+}
+
 while [ ${#} -gt 0 ]; do
     case "$1" in
         --modsecurity )                     WITH_MODSECURITY=true       ;;  # Include ModSecurity in building
@@ -7,6 +21,18 @@ while [ ${#} -gt 0 ]; do
         --no-modsecurity | -nm )            WITH_MODSECURITY=false      ;;  # LEGACY: Not include ModSecurity in building
         --no-lua | -nl )                    WITH_LUA=false              ;;  # LEGACY: Not include Lua in building
         --install | -i )                    INSTALL=true                ;;  # Install Nginx
+        --lua-prefix=* )
+            LUA_BASE_PATH="${1#*=}"
+            check_empty "$LUA_BASE_PATH" "LUA_BASE_PATH"
+            ;;
+        --modsecurity-prefix=* )
+            MODSEC_BASE_PATH="${1#*=}"
+            check_empty "$MODSEC_BASE_PATH" "MODSEC_BASE_PATH"
+            ;;
+        --luajit2-prefix=* )
+            LUAJIT_BASE_PATH="${1#*=}"
+            check_empty "$LUAJIT_BASE_PATH" "LUAJIT_BASE_PATH"
+            ;;
         --ssl=* )
             SSL_LIB="${1#*=}"
             SSL_LIB="${SSL_LIB,,}"
@@ -42,14 +68,7 @@ while [ ${#} -gt 0 ]; do
             ;;
         --nginx-tag=* )
             NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
-            case $NGINX_TAG in
-                "")
-                    echo "ERROR: --nginx-tag= is empty!"
-                    exit 1
-                    ;;
-                *)
-                    ;;
-            esac
+            check_empty "$NGINX_TAG" "NGINX_TAG"
             ;;
         *)
             ;;
@@ -57,12 +76,22 @@ while [ ${#} -gt 0 ]; do
     shift
 done
 
-# if $SSL_LIB is null/empty
+# DEFAULT VARIABLES
 SSL_LIB=${SSL_LIB:-"boringssl"}
 BUILD_TYPE=${BUILD_TYPE:-"nginx"}
 
 WITH_MODSECURITY=${WITH_MODSECURITY:-false}
 WITH_LUA=${WITH_LUA:-false}
+
+# 2025 default path suggestions:
+# - LUAJIT_BASE_PATH=/usr
+# - LUA_BASE_PATH=/usr/local/share/lua/5.1
+# - MODSEC_BASE_PATH=/usr
+#
+# The current configuration will be reserved for compatiblity purposes.
+LUAJIT_BASE_PATH=${LUAJIT_BASE_PATH:-"/opt/nginx-lua-module/luajit2"}
+LUA_BASE_PATH=${LUA_BASE_PATH:-"/usr/local/lua"}
+MODSEC_BASE_PATH=${MODSEC_BASE_PATH:-"/usr/local/modsecurity"}
 
 #################################
 ##                             ##
@@ -231,12 +260,12 @@ esac
 
 # ModSecurity
 if [ "${WITH_MODSECURITY}" == true ]; then
-    git clone --depth=1 https://github.com/SpiderLabs/ModSecurity $HOMEDIRECTORY/ModSecurity
+    git clone --depth=1 https://github.com/owasp-modsecurity/ModSecurity $HOMEDIRECTORY/ModSecurity
     cd $HOMEDIRECTORY/ModSecurity
     git submodule init
     git submodule update
     ./build.sh
-    ./configure
+    ./configure --prefix=${MODSEC_BASE_PATH}
     make
     sudo make install
 fi
@@ -252,7 +281,7 @@ git clone https://github.com/openresty/headers-more-nginx-module $HOMEDIRECTORY/
 git clone https://github.com/openresty/echo-nginx-module $HOMEDIRECTORY/nginx/mosc/echo-nginx-module
 
 if [ "${WITH_MODSECURITY}" == true ]; then
-    git clone https://github.com/SpiderLabs/ModSecurity-nginx $HOMEDIRECTORY/nginx/mosc/ModSecurity-nginx
+    git clone https://github.com/owasp-modsecurity/ModSecurity-nginx $HOMEDIRECTORY/nginx/mosc/ModSecurity-nginx
 fi
 
 if [ "${WITH_LUA}" == true ]; then
@@ -279,13 +308,13 @@ if [ "${WITH_LUA}" == true ]; then
     git clone https://github.com/openresty/luajit2 $HOMEDIRECTORY/nginx-lua/luajit2
     git clone https://github.com/openresty/lua-resty-string $HOMEDIRECTORY/nginx-lua/lua-resty-string
 
-    cd $HOMEDIRECTORY/nginx-lua/luajit2 && make && sudo make install PREFIX=/opt/nginx-lua-module/luajit2
-    cd $HOMEDIRECTORY/nginx-lua/lua-resty-core && sudo make install PREFIX=/usr/local/lua LUA_LIB_DIR=/usr/local/lua
-    cd $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache && sudo make install PREFIX=/usr/local/lua LUA_LIB_DIR=/usr/local/lua
-    cd $HOMEDIRECTORY/nginx-lua/lua-resty-string && sudo make install PREFIX=/usr/local/lua LUA_LIB_DIR=/usr/local/lua
+    cd $HOMEDIRECTORY/nginx-lua/luajit2 && make && sudo make install PREFIX=${LUAJIT_BASE_PATH}
+    cd $HOMEDIRECTORY/nginx-lua/lua-resty-core && sudo make install PREFIX=${LUA_BASE_PATH} LUA_LIB_DIR=${LUA_BASE_PATH}
+    cd $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache && sudo make install PREFIX=${LUA_BASE_PATH} LUA_LIB_DIR=${LUA_BASE_PATH}
+    cd $HOMEDIRECTORY/nginx-lua/lua-resty-string && sudo make install PREFIX=${LUA_BASE_PATH} LUA_LIB_DIR=${LUA_BASE_PATH}
 
-    export LUAJIT_LIB=/opt/nginx-lua-module/luajit2/lib
-    export LUAJIT_INC=/opt/nginx-lua-module/luajit2/include/luajit-2.1
+    export LUAJIT_LIB=${LUAJIT_BASE_PATH}/lib
+    export LUAJIT_INC=${LUAJIT_BASE_PATH}/include/luajit-2.1
 fi
 
 ######################################################################
