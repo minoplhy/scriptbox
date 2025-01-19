@@ -1,13 +1,34 @@
 #!/bin/bash
 
+info() {
+    local INFO_MSG=$1
+    local VARIABLE=$2
+
+    printf "INFO: $INFO_MSG\n" $VARIABLE
+}
+
+error() {
+    local ERROR_MSG=$1
+    local VARIABLE=$2
+
+    printf "ERROR: $ERROR_MSG\n" $VARIABLE
+}
+
+panic() {
+    local PANIC_MSG=$1
+    local VARIABLE=$2
+
+    printf "PANIC: $PANIC_MSG\n" $VARIABLE
+    exit 1
+}
+
 # Check for empty variable input from CLI arguments
 check_empty() {
     VARIABLE="$1"
     VARIABLE_NAME="$2"
     case $VARIABLE in
         "")
-            echo "ERROR: ${VARIABLE_NAME} is empty!"
-            exit 1
+            panic "%s is empty!" "${VARIABLE_NAME}"
             ;;
         *)
             ;;
@@ -21,6 +42,7 @@ while [ ${#} -gt 0 ]; do
         --no-modsecurity | -nm )            WITH_MODSECURITY=false      ;;  # LEGACY: Not include ModSecurity in building
         --no-lua | -nl )                    WITH_LUA=false              ;;  # LEGACY: Not include Lua in building
         --install | -i )                    INSTALL=true                ;;  # Install Nginx
+        --preserve | -p )                   PRESERVE=true               ;;  # PRESERVE Existing installation(only ModSecurity, Lua)
         --lua-prefix=* )
             LUA_BASE_PATH="${1#*=}"
             check_empty "$LUA_BASE_PATH" "LUA_BASE_PATH"
@@ -41,12 +63,10 @@ while [ ${#} -gt 0 ]; do
                 "boringssl")                SSL_LIB="boringssl" ;;
                 "libressl")                 SSL_LIB="libressl"  ;;
                 "")
-                    echo "ERROR : --ssl= is empty!"
-                    exit 1
+                    panic "--ssl= is empty!"
                     ;;
                 *)
-                    echo "ERROR : Vaild values for --ssl are -> quictls, boringssl, libressl"
-                    exit 1
+                    panic "Vaild values for --ssl are -> quictls, boringssl, libressl"
                     ;;
             esac
             ;;
@@ -57,12 +77,10 @@ while [ ${#} -gt 0 ]; do
                 "nginx")                    BUILD_TYPE="nginx"      ;;
                 "freenginx")                BUILD_TYPE="freenginx"  ;;
                 "")
-                    echo "ERROR : --type= is empty!"
-                    exit 1
+                    panic "--type= is empty!"
                     ;;
                 *)
-                    echo "ERROR :  Vaild values for --type are -> nginx, freenginx"
-                    exit 1
+                    panic "Vaild values for --type are -> nginx, freenginx"
                     ;;
             esac
             ;;
@@ -92,6 +110,15 @@ WITH_LUA=${WITH_LUA:-false}
 LUAJIT_BASE_PATH=${LUAJIT_BASE_PATH:-"/opt/nginx-lua-module/luajit2"}
 LUA_BASE_PATH=${LUA_BASE_PATH:-"/usr/local/lua"}
 MODSEC_BASE_PATH=${MODSEC_BASE_PATH:-"/usr/local/modsecurity"}
+
+if [ "${PRESERVE}" == true ]; then
+    if "${WITH_MODSECURITY}" == true && ! find "${MODSEC_BASE_PATH}/lib/" -name 'libmodsec*' > /dev/null; then
+        panic "Cannot find libmodsec Library at %s" "$MODSEC_BASE_PATH"
+    fi
+    if "${WITH_LUA}" == true && ! find "${LUAJIT_BASE_PATH}/lib/" -name 'libluajit*' > /dev/null; then
+        panic "Cannot find libluajit Library at %s" "$LUAJIT_BASE_PATH"
+    fi
+fi
 
 #################################
 ##                             ##
@@ -165,7 +192,7 @@ case $os in
             sudo
         ;;
     * )
-        echo "ERROR: the os detected is not supported. The script will run as is."
+        error "the os detected is not supported. The script will run as is!"
         ;;
 esac
 
@@ -187,10 +214,10 @@ case $BUILD_TYPE in
         if [[ -n $NGINX_TAG ]]
         then
             if git show-ref $NGINX_TAG --quiet;  then
-                echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
+                info "Switching Nginx Branch to %s" "${NGINX_TAG}"
                 git checkout $NGINX_TAG
             else
-                echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
+                panic "NGINX_TAG specified is not existed. aborting..."
             fi
         else
             git checkout master
@@ -205,10 +232,10 @@ case $BUILD_TYPE in
         if [[ -n $NGINX_TAG ]]
         then
             if hg tags | grep -q "^${NGINX_TAG}\>"; then
-                echo "INFO: Switching Nginx Branch to ${NGINX_TAG}"
+                info "Switching Nginx Branch to %s" "${NGINX_TAG}"
                 hg checkout $NGINX_TAG
             else
-                echo "ERROR: NGINX_TAG specified is not existed. aborting..." && exit 1
+                panic "NGINX_TAG specified is not existed. aborting..."
             fi
         else
             hg checkout default
@@ -259,7 +286,7 @@ case $SSL_LIB in
 esac
 
 # ModSecurity
-if [ "${WITH_MODSECURITY}" == true ]; then
+if [[ "${WITH_MODSECURITY}" == true && ! "${PRESERVE}" == true ]]; then
     git clone --depth=1 https://github.com/owasp-modsecurity/ModSecurity $HOMEDIRECTORY/ModSecurity
     cd $HOMEDIRECTORY/ModSecurity
     git submodule init
@@ -300,15 +327,18 @@ cmake --build . --config Release --target brotlienc
 #
 # lua resty core,lrucache,luajit2
 
+if [[ "${WITH_LUA}" == true && ! "${PRESERVE}" == true ]]; then
+    sudo mkdir -p ${LUAJIT_BASE_PATH}
+    git clone https://github.com/openresty/luajit2 $HOMEDIRECTORY/nginx-lua/luajit2
+    cd $HOMEDIRECTORY/nginx-lua/luajit2 && make && sudo make install PREFIX=${LUAJIT_BASE_PATH}
+fi
+
 if [ "${WITH_LUA}" == true ]; then
     mkdir -p $HOMEDIRECTORY/nginx-lua && cd $HOMEDIRECTORY/nginx-lua
-    sudo mkdir -p /opt/nginx-lua-module/
     git clone https://github.com/openresty/lua-resty-core $HOMEDIRECTORY/nginx-lua/lua-resty-core
     git clone https://github.com/openresty/lua-resty-lrucache $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache
-    git clone https://github.com/openresty/luajit2 $HOMEDIRECTORY/nginx-lua/luajit2
     git clone https://github.com/openresty/lua-resty-string $HOMEDIRECTORY/nginx-lua/lua-resty-string
 
-    cd $HOMEDIRECTORY/nginx-lua/luajit2 && make && sudo make install PREFIX=${LUAJIT_BASE_PATH}
     cd $HOMEDIRECTORY/nginx-lua/lua-resty-core && sudo make install PREFIX=${LUA_BASE_PATH} LUA_LIB_DIR=${LUA_BASE_PATH}
     cd $HOMEDIRECTORY/nginx-lua/lua-resty-lrucache && sudo make install PREFIX=${LUA_BASE_PATH} LUA_LIB_DIR=${LUA_BASE_PATH}
     cd $HOMEDIRECTORY/nginx-lua/lua-resty-string && sudo make install PREFIX=${LUA_BASE_PATH} LUA_LIB_DIR=${LUA_BASE_PATH}
@@ -462,7 +492,7 @@ EOL
 
     cp modules.conf /etc/nginx/modules-enabled
 elif [[ ! $exit_code -eq 0 ]]; then
-    printf "Nginx Build Failed..."
+    panic "Nginx Build Failed..."
 else
-    printf "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : '%s'/nginx/objs" $HOMEDIRECTORY
+    info "Nginx_Install variable isn't set/vaild. Your Nginx assets location is : '%s'/nginx/objs" $HOMEDIRECTORY
 fi

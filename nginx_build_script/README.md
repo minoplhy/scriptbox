@@ -22,6 +22,19 @@ while [ ${#} -gt 0 ]; do
         --no-modsecurity | -nm )            WITH_MODSECURITY=false      ;;  # LEGACY: Not include ModSecurity in building
         --no-lua | -nl )                    WITH_LUA=false              ;;  # LEGACY: Not include Lua in building
         --install | -i )                    INSTALL=true                ;;  # Install Nginx
+        --preserve | -p )                   PRESERVE=true               ;;  # PRESERVE Existing installation(only ModSecurity, Lua)
+        --lua-prefix=* )
+            LUA_BASE_PATH="${1#*=}"
+            check_empty "$LUA_BASE_PATH" "LUA_BASE_PATH"
+            ;;
+        --modsecurity-prefix=* )
+            MODSEC_BASE_PATH="${1#*=}"
+            check_empty "$MODSEC_BASE_PATH" "MODSEC_BASE_PATH"
+            ;;
+        --luajit2-prefix=* )
+            LUAJIT_BASE_PATH="${1#*=}"
+            check_empty "$LUAJIT_BASE_PATH" "LUAJIT_BASE_PATH"
+            ;;
         --ssl=* )
             SSL_LIB="${1#*=}"
             SSL_LIB="${SSL_LIB,,}"
@@ -30,12 +43,10 @@ while [ ${#} -gt 0 ]; do
                 "boringssl")                SSL_LIB="boringssl" ;;
                 "libressl")                 SSL_LIB="libressl"  ;;
                 "")
-                    echo "ERROR : --ssl= is empty!"
-                    exit 1
+                    panic "--ssl= is empty!"
                     ;;
                 *)
-                    echo "ERROR : Vaild values for --ssl are -> quictls, boringssl, libressl"
-                    exit 1
+                    panic "Vaild values for --ssl are -> quictls, boringssl, libressl"
                     ;;
             esac
             ;;
@@ -46,25 +57,16 @@ while [ ${#} -gt 0 ]; do
                 "nginx")                    BUILD_TYPE="nginx"      ;;
                 "freenginx")                BUILD_TYPE="freenginx"  ;;
                 "")
-                    echo "ERROR : --type= is empty!"
-                    exit 1
+                    panic "--type= is empty!"
                     ;;
                 *)
-                    echo "ERROR :  Vaild values for --type are -> nginx, freenginx"
-                    exit 1
+                    panic "Vaild values for --type are -> nginx, freenginx"
                     ;;
             esac
             ;;
         --nginx-tag=* )
             NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
-            case $NGINX_TAG in
-                "")
-                    echo "ERROR: --nginx-tag= is empty!"
-                    exit 1
-                    ;;
-                *)
-                    ;;
-            esac
+            check_empty "$NGINX_TAG" "NGINX_TAG"
             ;;
         *)
             ;;
