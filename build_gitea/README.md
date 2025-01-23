@@ -27,9 +27,16 @@ while [ ${#} -gt 0 ]; do
             shift
             NODEJS_VERSION=$1
             ;;                          # NodeJS Version
+        --dest | -d )
+            shift
+            DESTINATION=$1
+            ;;                          # Destination Dir
         --static | -s)
             BUILD_STATIC=true
             ;;                          # Also Build Static Assets file
+        --system | -s)
+            USE_SYSTEM=true
+            ;;                          # Use system's NPM and Go
         --type=* )
             BUILD_TYPE="${1#*=}"
             BUILD_TYPE="${BUILD_TYPE,,}"

@@ -1,10 +1,5 @@
 #!/bin/bash
 
-DESTINATION=~/gitea-binaries
-
-rm -rf $DESTINATION
-mkdir -p $DESTINATION
-
 while [ ${#} -gt 0 ]; do
     case "$1" in
         --git-tag | -v)
@@ -19,9 +14,16 @@ while [ ${#} -gt 0 ]; do
             shift
             NODEJS_VERSION=$1
             ;;                          # NodeJS Version
+        --dest | -d )
+            shift
+            DESTINATION=$1
+            ;;                          # Destination Dir
         --static | -s)
             BUILD_STATIC=true
             ;;                          # Also Build Static Assets file
+        --system | -s)
+            USE_SYSTEM=true
+            ;;                          # Use system's NPM and Go
         --type=* )
             BUILD_TYPE="${1#*=}"
             BUILD_TYPE="${BUILD_TYPE,,}"
@@ -74,6 +76,11 @@ done
 NODEJS_VERSION=${NODEJS_VERSION:-"v20.17.0"}
 GO_VERSION=${GO_VERSION:-"1.23.2"}
 BUILD_TYPE=${BUILD_TYPE:-"gitea"}
+DESTINATION=${DESTINATION:-"~/gitea-binaries"}
+
+# Clean up old build
+rm -rf $DESTINATION
+mkdir -p $DESTINATION
 
 # OS
 GOOS=linux
@@ -146,22 +153,25 @@ case $DISTRO in
         ;;
 esac
 
-# NodeJS
-case $DISTRO in
-    "alpine")
-        apk add nodejs npm # NodeJS in alpine required complex build to be done. For peace of mind  i'll use apk until i see better options. 
-    ;;
-    * )
-        wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$NODEJS_DISTRO-$NODEJS_ARCH.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
-        tar -xJvf $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz -C $DESTINATION
-        export PATH=$PATH:$DESTINATION/node-$NODEJS_VERSION-$DISTRO/bin
-    ;;
-esac
+# This part will be skip if USE_SYSTEM=true
+if [[ ! "${USE_SYSTEM}" == true ]]; then
+    # NodeJS
+    case $DISTRO in
+        "alpine")
+            apk add nodejs npm # NodeJS in alpine required complex build to be done. For peace of mind  i'll use apk until i see better options. 
+        ;;
+        * )
+            wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$NODEJS_DISTRO-$NODEJS_ARCH.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
+            tar -xJvf $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz -C $DESTINATION
+            export PATH=$PATH:$DESTINATION/node-$NODEJS_VERSION-$DISTRO/bin
+        ;;
+    esac
 
-# Golang
-wget https://go.dev/dl/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz -O $DESTINATION/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz
-tar -C $DESTINATION -xzf $DESTINATION/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz
-export PATH=$PATH:$DESTINATION/go/bin
+    # Golang
+    wget https://go.dev/dl/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz -O $DESTINATION/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz
+    tar -C $DESTINATION -xzf $DESTINATION/go$GO_VERSION.$GOOS-$BASE_GOARCH.tar.gz
+    export PATH=$PATH:$DESTINATION/go/bin
+fi
 
 # Gitea
 
