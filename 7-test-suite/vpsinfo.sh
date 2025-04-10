@@ -19,6 +19,7 @@ DISK_TOTAL=$(df -h -t simfs -t ext2 -t ext3 -t ext4 -t btrfs -t xfs -t vfat -t n
 
 curl -SL https://yabs.sh | bash -s -- -5 -6 > yabs.sh
 curl -sL https://nws.sh | bash > nws.sh
+curl -sL https://bench.monster | bash -s -- -all > bench.sh
 
 echo "{{< vps_info
 cpu=\"$CPU_INFO\"
