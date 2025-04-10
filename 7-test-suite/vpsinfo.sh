@@ -4,7 +4,6 @@
 #   7 Test Suite
 #
 
-
 CPU_INFO=$(awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo | sed 's/^[ \t]*//;s/[ \t]*$//')
 CPU_AES=$(grep aes /proc/cpuinfo)
 CPU_VIRT=$(lscpu | grep "Virtualization:" | awk '{print $2}')
@@ -18,7 +17,10 @@ DISK_TOTAL=$(df -h -t simfs -t ext2 -t ext3 -t ext4 -t btrfs -t xfs -t vfat -t n
 
 [[ -z "$CPU_AES" ]] || CPU_AES="yes"
 
-echo "{{< vpsinfo
+curl -SL https://yabs.sh | bash -s -- -5 -6 > yabs.sh
+curl -sL https://nws.sh | bash > nws.sh
+
+echo "{{< vps_info
 cpu=\"$CPU_INFO\"
 aesni=\"$CPU_AES\"
 virt=\"$CPU_VIRT\"
@@ -27,4 +29,5 @@ memory_total=\"$MEM_TOTAL\"
 memory_read=\"$MEM_READ_SPEED\"
 memory_write=\"$MEM_WRITE_SPEED\"
 disk_total=\"$DISK_TOTAL\"
->}}"
+>}}
+" > vpsinfo.txt
