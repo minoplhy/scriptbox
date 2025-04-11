@@ -17,9 +17,9 @@ DISK_TOTAL=$(df -h -t simfs -t ext2 -t ext3 -t ext4 -t btrfs -t xfs -t vfat -t n
 
 [[ -z "$CPU_AES" ]] || CPU_AES="yes"
 
-curl -SL https://yabs.sh | bash -s -- -5 -6 > yabs.sh
-curl -sL https://nws.sh | bash > nws.sh
-curl -sL https://bench.monster | bash -s -- -all > bench.sh
+curl -SL https://yabs.sh | bash -s -- -5 -6 | perl -pe 's/\e\[?.*?[@-~]//g' | perl -pe 's/.*\r(.*)/$1/' > yabs.txt
+curl -sL https://nws.sh | bash | perl -pe 's/\e\[?.*?[@-~]//g' | perl -pe 's/.*\r(.*)/$1/' > nws.txt
+curl -sL https://bench.monster | bash -s -- -all > bench.txt
 
 echo "{{< vps_info
 cpu=\"$CPU_INFO\"
