@@ -3,6 +3,8 @@
 #
 #   7 Test Suite
 #
+os=$(uname -s 2>/dev/null || echo "Unknown")
+arch=$(uname -m 2>/dev/null || echo "Unknown")
 
 CPU_INFO=$(awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo | sed 's/^[ \t]*//;s/[ \t]*$//')
 CPU_AES=$(grep aes /proc/cpuinfo)
@@ -20,6 +22,28 @@ DISK_TOTAL=$(df -h -t simfs -t ext2 -t ext3 -t ext4 -t btrfs -t xfs -t vfat -t n
 curl -SL https://yabs.sh | bash -s -- -4 -5 -6 | perl -pe 's/\e\[?.*?[@-~]//g' | perl -pe 's/.*\r(.*)/$1/' > yabs.txt
 curl -sL https://nws.sh | bash | perl -pe 's/\e\[?.*?[@-~]//g' | perl -pe 's/.*\r(.*)/$1/' > nws.txt
 curl -sL https://bench.monster | bash -s -- -all > bench.txt
+
+GOECS_VERSION=v0.1.29
+case $os in
+    Linux|linux|LINUX)
+        case $arch in
+            x86_64|amd64|x64) zip_file="amd64" ;;
+            i386|i686) zip_file="386" ;;
+            aarch64|arm64|armv8|armv8l) zip_file="arm64" ;;
+            arm|armv7l) zip_file="arm" ;;
+            mips) zip_file="mips" ;;
+            mipsle) zip_file="mipsle" ;;
+            s390x) zip_file="s390x" ;;
+            riscv64) zip_file="riscv64" ;;
+            *) zip_file="amd64" ;;
+        esac
+    ;;
+esac
+
+wget -O goecs.zip https://github.com/oneclickvirt/ecs/releases/download/$GOECS_VERSION/goecs_linux_$zip_file.zip
+unzip goecs.zip && rm goecs.zip
+./goecs -l en -menu=false -upload=false
+rm goecs
 
 echo "{{< vps_info
 cpu=\"$CPU_INFO\"
