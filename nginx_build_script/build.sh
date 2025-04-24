@@ -138,6 +138,8 @@ case $os in
             libunwind-dev \
             libpcre3 \
             libpcre3-dev \
+            libpcre2 \
+            libpcre2-dev \
             zlib1g-dev \
             cmake \
             make \
@@ -167,6 +169,7 @@ case $os in
             mercurial \
             libunwind \
             pcre-dev \
+            pcre2-dev \
             zlib-dev \
             cmake \
             make \
