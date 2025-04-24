@@ -138,7 +138,6 @@ case $os in
             libunwind-dev \
             libpcre3 \
             libpcre3-dev \
-            libpcre2 \
             libpcre2-dev \
             zlib1g-dev \
             cmake \
@@ -260,7 +259,7 @@ case $SSL_LIB in
         ;;
     "boringssl")
         # Golang
-        GO_VERSION=1.23.1
+        GO_VERSION=1.24.2
 
         wget https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz -O $HOMEDIRECTORY/go$GO_VERSION.linux-amd64.tar.gz
         tar -C $HOMEDIRECTORY -xzf $HOMEDIRECTORY/go$GO_VERSION.linux-amd64.tar.gz
@@ -422,7 +421,7 @@ case $SSL_LIB in
         NGINX_CONFIG_PARAMS+=(
             --with-cc-opt="-I../boringssl/include -x c"
         )
-        WITH_LD_OPT="-L../boringssl/build/ssl -L../boringssl/build/crypto"
+        WITH_LD_OPT="-L../boringssl/build"
         ;;
     "libressl")
         NGINX_CONFIG_PARAMS+=(
