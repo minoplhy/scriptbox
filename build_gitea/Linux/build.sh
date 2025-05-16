@@ -212,7 +212,8 @@ if [[ -z $SOURCE_FOLDER ]]; then
 else
     echo "INFO: Building on custom source"
     echo "INFO: Copying source from original folder"
-    cp -r $SOURCE_FOLDER $DESTINATION/gitea-repo
+    cp -r "${SOURCE_FOLDER}" $DESTINATION/gitea-repo
+    cp -r "${SOURCE_FOLDER}"/* $DESTINATION/gitea-repo
 fi
 
 cd $DESTINATION/gitea-repo
