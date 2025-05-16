@@ -40,6 +40,17 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --source-folder=* )
+            SOURCE_FOLDER="${1#*=}"
+            case $SOURCE_FOLDER in
+                "")
+                    echo "ERROR: --source-folder= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;                          # Source folder for your gitea/forgejo build / in case --type does not satisfy you
         --patch=* )
             PATCH_FILES="${1#*=}"
             case $PATCH_FILES in
@@ -75,7 +86,17 @@ done
 # If empty
 NODEJS_VERSION=${NODEJS_VERSION:-"v20.17.0"}
 GO_VERSION=${GO_VERSION:-"1.23.2"}
-BUILD_TYPE=${BUILD_TYPE:-"gitea"}
+
+# Source folder get more priority than the --type
+if [[ -z $SOURCE_FOLDER ]]; then
+    BUILD_TYPE=${BUILD_TYPE:-"gitea"}
+fi
+
+if [[ -n $SOURCE_FOLDER && ! -d $SOURCE_FOLDER ]]; then
+    printf "Error: folder '%s' not exist! exiting...\n" $SOURCE_FOLDER
+    exit 1
+fi
+
 DESTINATION=${DESTINATION:-"~/gitea-binaries"}
 
 # Clean up old build
@@ -177,17 +198,22 @@ fi
 
 # GIT_TAG=
 # specify the tag which gitea will build on
-
-case $BUILD_TYPE in
-    "gitea")
-        echo "INFO: Building on gitea"
-        git clone https://github.com/go-gitea/gitea $DESTINATION/gitea-repo
-        ;;
-    "forgejo")
-        echo "INFO: Building on forgejo"
-        git clone https://codeberg.org/forgejo/forgejo $DESTINATION/gitea-repo #LOL
-        ;;
-esac
+if [[ -z $SOURCE_FOLDER ]]; then
+    case $BUILD_TYPE in
+        "gitea")
+            echo "INFO: Building on gitea"
+            git clone https://github.com/go-gitea/gitea $DESTINATION/gitea-repo
+            ;;
+        "forgejo")
+            echo "INFO: Building on forgejo"
+            git clone https://codeberg.org/forgejo/forgejo $DESTINATION/gitea-repo #LOL
+            ;;
+    esac
+else
+    echo "INFO: Building on custom source"
+    echo "INFO: Copying source from original folder"
+    cp -r $SOURCE_FOLDER $DESTINATION/gitea-repo
+fi
 
 cd $DESTINATION/gitea-repo
 

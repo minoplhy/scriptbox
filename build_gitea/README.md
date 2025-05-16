@@ -53,6 +53,17 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --source-folder=* )
+            SOURCE_FOLDER="${1#*=}"
+            case $SOURCE_FOLDER in
+                "")
+                    echo "ERROR: --source-folder= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;                          # Source folder for your gitea/forgejo build / in case --type does not satisfy you
         --patch=* )
             PATCH_FILES="${1#*=}"
             case $PATCH_FILES in
