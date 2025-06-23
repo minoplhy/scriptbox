@@ -1,0 +1,6 @@
+auto-initramfs-dropbear
+
+AUTO SETUP initramfs-dropbear
+
+HOW TO USE:
+    ./setup.sh <ip>
