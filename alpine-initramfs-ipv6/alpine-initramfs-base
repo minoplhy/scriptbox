@@ -1,4 +1,5 @@
 #!/bin/sh
+# initramfs init
 
 # this is the init script version
 VERSION=@VERSION@
@@ -44,7 +45,7 @@ unpack_apkovl() {
 	fi
 
 	# we need openssl. let apk handle deps
-	apk add --quiet --initdb --repositories-file $repofile openssl || return 1
+	$MOCK apk add --quiet --initdb --repositories-file $repofile openssl || return 1
 
 	if ! openssl list -1 -cipher-commands | grep "^$suffix$" > /dev/null; then
 		errstr="Cipher $suffix is not supported"
@@ -139,6 +140,23 @@ setup_inittab_console() {
 		if [ -e "$sysroot"/etc/securetty ] && ! grep -q -w "$tty" "$sysroot"/etc/securetty; then
 			echo "$tty" >> "$sysroot"/etc/securetty
 		fi
+	done
+}
+
+setconsole_serial() {
+	for tty in $(detect_serial_consoles); do
+		# ignore tty devices that gives I/O error
+		if ! stty -g -F /dev/$tty >/dev/null 2>/dev/null; then
+			continue
+		fi
+		if [ $# -eq 0 ] && $MOCK setconsole /dev/$tty; then
+			return
+		fi
+		for pattern in "$@"; do
+			if grep -E -q "$pattern" "$ROOT/sys/class/dmi/id/modalias" 2>/dev/null; then
+				$MOCK setconsole /dev/$tty && return
+			fi
+		done
 	done
 }
 
@@ -419,6 +437,27 @@ resume_from_disk () {
 	fi
 }
 
+prepare_apkovl() {
+	local IFS=':'
+	set -- $KOPT_apkovl
+	unset IFS
+
+	local device=, relpath=, fstypeopt=
+
+	case $# in
+	2) device=$1; relpath=$2;;
+	3) device=$1; fstypeopt="-t $2"; relpath=$3;;
+	*) ovl=$KOPT_apkovl; return;;
+	esac
+
+	devname=${device##*/}
+	ovl_unmount="$ROOT/media/$devname"
+	ovl="$ovl_unmount/$relpath"
+
+	$MOCK mkdir -p "$ovl_unmount"
+	$MOCK mount $fstypeopt "$device" "$ovl_unmount"
+}
+
 /bin/busybox mkdir -p \
 	"$ROOT"/bin \
 	"$ROOT"/sbin \
@@ -535,6 +574,11 @@ for opt; do
 		esac
 	done
 done
+
+case "$KOPT_autodetect_serial" in
+	setconsole) setconsole_serial;;
+	setconsole=*) setconsole_serial $(echo "${KOPT_autodetect_serial#setconsole=}" | tr ',' ' ');;
+esac
 
 echo "Alpine Init $VERSION" > "$ROOT"/dev/kmsg
 [ "$KOPT_quiet" = yes ] || echo "Alpine Init $VERSION"
@@ -825,7 +869,7 @@ elif is_url "$KOPT_apkovl"; then
 	ovl="${ovl%%\?*}"
 	$MOCK wget -O "$ovl" "$url" || ovl=
 else
-	ovl="$KOPT_apkovl"
+	prepare_apkovl
 fi
 
 # parse pkgs=pkg1,pkg2
@@ -837,7 +881,7 @@ fi
 if [ -f "$ovl" ]; then
 	ebegin "Loading user settings from $ovl"
 	# create apk db and needed /dev/null and /tmp first
-	apk add --root $sysroot --initdb --quiet
+	$MOCK apk add --root $sysroot --initdb --quiet
 
 	unpack_apkovl "$ovl" $sysroot
 	eend $? $errstr || ovlfiles=
@@ -998,9 +1042,9 @@ $MOCK mount -o bind /sys $sysroot/sys
 $MOCK mount -o bind /proc $sysroot/proc
 $MOCK mount -o bind /dev $sysroot/dev
 if [ -n "$ovlfiles" ]; then
-	apk add --root $sysroot $repo_opt $apkflags $pkgs <$ovlfiles
+	$MOCK apk add --root $sysroot $repo_opt $apkflags $pkgs <$ovlfiles
 else
-	apk add --root $sysroot $repo_opt $apkflags $pkgs
+	$MOCK apk add --root $sysroot $repo_opt $apkflags $pkgs
 fi
 $MOCK umount $sysroot/sys $sysroot/proc $sysroot/dev
 eend $?
