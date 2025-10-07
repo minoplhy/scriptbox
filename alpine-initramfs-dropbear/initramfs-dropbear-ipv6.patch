@@ -1,4 +1,4 @@
-271a272,350
+289a290,368
 > # configure ipv6 on initramfs
 > # Valid syntaxes:
 > #   ip6=client-ip/gateway-ip/interface/dns1/dns2
@@ -78,7 +78,7 @@
 > 	MAC_ADDRESS=$(cat "$ROOT/sys/class/net/$iface/address")
 > }
 > 
-325a405,419
+343a423,437
 > setup_dropbear() {
 > 	local port="${KOPT_dropbear}"
 > 	local keys=""
@@ -94,10 +94,10 @@
 > 	dropbear -R -E -s -j -k -p $port
 > }
 > 
-513a608,609
+552a647,648
 > 	dropbear
 > 	ip6
-642c738,746
+686c782,790
 < if [ -n "$KOPT_cryptroot" ]; then
 ---
 > if [ -n "$KOPT_dropbear" ]; then
@@ -109,12 +109,12 @@
 > 
 > # Add Workaround for dropbear
 > if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
-706a811,814
+750a855,858
 > 	# Kill all struck nlplug-findfs jobs and dropbear
 > 	killall -9 nlplug-findfs
 > 	killall -9 dropbear
 > 
-789a898,901
+833a942,945
 > 	
 >     # Kill all struck nlplug-findfs jobs and dropbear
 > 	killall -9 nlplug-findfs

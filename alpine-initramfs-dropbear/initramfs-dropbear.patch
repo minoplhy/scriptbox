@@ -1,4 +1,4 @@
-325a326,340
+343a344,358
 > setup_dropbear() {
 > 	local port="${KOPT_dropbear}"
 > 	local keys=""
@@ -14,9 +14,9 @@
 > 	dropbear -R -E -s -j -k -p $port
 > }
 > 
-513a529
+552a568
 > 	dropbear
-642c658,666
+686c702,710
 < if [ -n "$KOPT_cryptroot" ]; then
 ---
 > if [ -n "$KOPT_dropbear" ]; then
@@ -28,12 +28,12 @@
 > 
 > # Add Workaround for dropbear
 > if [ -n "$KOPT_cryptroot" ] && [ ! -b /dev/mapper/"${KOPT_cryptdm}" ]; then
-706a731,734
+750a775,778
 > 	# Kill all struck nlplug-findfs jobs and dropbear
 > 	killall -9 nlplug-findfs
 > 	killall -9 dropbear
 > 
-789a818,821
+833a862,865
 > 	
 >     # Kill all struck nlplug-findfs jobs and dropbear
 > 	killall -9 nlplug-findfs
