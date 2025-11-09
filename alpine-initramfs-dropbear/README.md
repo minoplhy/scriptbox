@@ -54,6 +54,7 @@ features="ata base ide scsi usb virtio ext4 cryptsetup keymap dropbear network"
 modules=sd-mod,usb-storage,ext4,ata_piix,virtio_net,e1000e,virtio_pci
 ```
 * if network is not working (/sys/class/net/*/address not found etc.) try adding `e1000e` or `virtio_net` `virtio_pci`
+  * Sidenote: Please resort to this guide for a more info about your module [Click](https://askubuntu.com/questions/216110/how-do-i-find-what-kernel-module-is-behind-a-network-interface/216116#216116)
 
 ```
 default_kernel_opts="cryptroot=UUID=xxx cryptdm=root quiet rootfstype=ext4 dropbear=<dropbear_port> ip=<ip> ip6=<ip6>"
