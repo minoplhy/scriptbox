@@ -34,7 +34,7 @@ add_feature_to_file() {
     echo "Added feature '$new_feature' to $file"
 }
 
-add_value_to_key() {
+extlinux_add_value_to_key() {
     local file="$1"
     local key="$2"
     local new_value="$3"
@@ -72,7 +72,7 @@ add_value_to_key() {
 }
 
 
-add_kernel_opt() {
+extlinux_add_kernel_opt() {
     local file="$1"
     local key="default_kernel_opts"
     local new_opt="$2"
@@ -106,6 +106,53 @@ add_kernel_opt() {
     echo "Added option '$new_opt' to $key"
 }
 
+grub_add_module() {
+    local module=$1
+    local grub_file="/etc/default/grub"
+
+    if [ -z "$module" ]; then
+        echo "No module specified."
+        return 1
+    fi
+
+    local grub_cmdline=$(grep '^GRUB_CMDLINE_LINUX_DEFAULT' $grub_file | cut -d= -f2- | sed 's/\"//g')
+
+    if [[ "$grub_cmdline" == *"modules=$module"* ]]; then
+        echo "Module '$module' already exists in GRUB_CMDLINE_LINUX_DEFAULT."
+        return 0
+    fi
+
+    if [[ "$grub_cmdline" == *"modules="* ]]; then
+        grub_cmdline=$(echo "$grub_cmdline" | sed -E "s/(modules=[^ ]*)/\1,$module/")
+    else
+        grub_cmdline="modules=$module $grub_cmdline"
+    fi
+
+    sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"$grub_cmdline\"|" $grub_file
+    echo "Module '$module' added successfully."
+}
+
+grub_add_option() {
+    local key_value=$1
+    local grub_file="/etc/default/grub"
+
+    if [ -z "$key_value" ]; then
+        echo "No key-value pair specified."
+        return 1
+    fi
+
+    local grub_cmdline=$(grep '^GRUB_CMDLINE_LINUX_DEFAULT' $grub_file | cut -d= -f2- | sed 's/\"//g' )
+
+    if [[ "$grub_cmdline" == *"$key_value"* ]]; then
+        echo "Key-value pair '$key_value' already exists in GRUB_CMDLINE_LINUX_DEFAULT."
+        return 0
+    fi
+
+    grub_cmdline="$grub_cmdline $key_value"
+    sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"$grub_cmdline\"|" $grub_file
+    echo "Key-value pair '$key_value' added successfully."
+}
+
 # Mandatory Packages
 apk add git dropbear
 
@@ -127,11 +174,29 @@ dropbearkey -t ed25519 -f /etc/dropbear/dropbear_ed25519_host_key
 add_feature_to_file "/etc/mkinitfs/mkinitfs.conf" "dropbear"
 add_feature_to_file "/etc/mkinitfs/mkinitfs.conf" "network"
 
-add_value_to_key "/etc/update-extlinux.conf" "modules" "virtio_pci"
-add_value_to_key "/etc/update-extlinux.conf" "modules" "virtio_net"
+if [[ -f "/etc/update-extlinux.conf" ]]; then
+    extlinux_add_value_to_key "/etc/update-extlinux.conf" "modules" "virtio_pci"
+    extlinux_add_value_to_key "/etc/update-extlinux.conf" "modules" "virtio_net"
 
-add_kernel_opt "/etc/update-extlinux.conf" "dropbear=5555"
-add_kernel_opt "/etc/update-extlinux.conf" "ip=$ip"
+    extlinux_add_kernel_opt "/etc/update-extlinux.conf" "dropbear=5555"
+    extlinux_add_kernel_opt "/etc/update-extlinux.conf" "ip=$ip"
 
-update-extlinux
-mkinitfs -i $scriptbox_directory/alpine-initramfs-dropbear/initramfs-dropbear
+    update-extlinux
+    mkinitfs -i $scriptbox_directory/alpine-initramfs-dropbear/initramfs-dropbear
+fi
+
+if [[ -f "/etc/default/grub" ]]; then
+    cp /etc/default/grub /etc/default/grub.bak
+
+    grub_add_module "virtio_pci"
+    grub_add_module "virtio_net"
+    # igb is a required network module for Intel machine that i have
+    # Find your network module here: https://askubuntu.com/questions/216110/how-do-i-find-what-kernel-module-is-behind-a-network-interface/216116#216116
+    grub_add_module "igb"
+
+    grub_add_option "dropbear=5555"
+    grub_add_option "ip=$ip"
+
+    update-grub
+    mkinitfs -i $scriptbox_directory/alpine-initramfs-dropbear/initramfs-dropbear
+fi
