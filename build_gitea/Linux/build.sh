@@ -179,12 +179,14 @@ if [[ ! "${USE_SYSTEM}" == true ]]; then
     # NodeJS
     case $DISTRO in
         "alpine")
-            apk add nodejs npm # NodeJS in alpine required complex build to be done. For peace of mind  i'll use apk until i see better options. 
+            apk add nodejs npm pnpm # NodeJS in alpine required complex build to be done. For peace of mind  i'll use apk until i see better options. 
         ;;
         * )
             wget https://nodejs.org/dist/$NODEJS_VERSION/node-$NODEJS_VERSION-$NODEJS_DISTRO-$NODEJS_ARCH.tar.xz -O $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz
             tar -xJvf $DESTINATION/node-$NODEJS_VERSION-$DISTRO.tar.xz -C $DESTINATION
             export PATH=$PATH:$DESTINATION/node-$NODEJS_VERSION-$DISTRO/bin
+            
+            npm install -g pnpm@latest-10
         ;;
     esac
 
