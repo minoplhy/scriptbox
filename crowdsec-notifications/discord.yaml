@@ -13,7 +13,7 @@ format: |
       {{range .Decisions -}}
       {
         "title": "{{.Scenario}}",
-        "description": "{{if $alert.Source.Cn -}}:flag_{{ $alert.Source.Cn | lower }}:{{end}}{{if not $alert.Source.Cn -}}:pirate_flag:{{end}} {{$alert.Source.IP}}\nCount : {{ $alert.EventsCount }}\n{{if $alert.Source.AsNumber -}}AS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}{{else}}AS: N/A{{end}}\nAction: {{.Type}} {{.Duration}} on {{ Hostname }}\nStart: {{ $alert.StartAt }}\nStop: {{ $alert.StopAt }}",
+        "description": "{{if $alert.Source.Cn -}}:flag_{{ $alert.Source.Cn | lower }}:{{end}}{{if not $alert.Source.Cn -}}:pirate_flag:{{end}} {{$alert.Source.IP}}\nCount : {{ $alert.EventsCount }}\n{{if $alert.Source.AsNumber -}}AS{{ $alert.Source.AsNumber }}: {{ $alert.Source.AsName }}{{else}}AS: N/A{{end}}\nAction: {{.Type}} {{.Duration}} on {{ Hostname }}\n{{.Type}}ed by: {{ $alert.MachineID }} \nStart: {{ $alert.StartAt }}\nStop: {{ $alert.StopAt }}",
         "color": "16711680"
       }
       {{end -}}
