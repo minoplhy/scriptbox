@@ -325,7 +325,9 @@ if [[ "${WITH_MODSECURITY}" == true && ! "${PRESERVE}" == true ]]; then
     ./configure --prefix=${MODSEC_BASE_PATH}
     make
     sudo make install
-    
+fi
+
+if [[ "${WITH_MODSECURITY}" == true ]]; then
     export MODSECURITY_LIB=${MODSEC_BASE_PATH}/lib
     export MODSECURITY_INC=${MODSEC_BASE_PATH}/include/modsecurity
 fi
