@@ -136,9 +136,6 @@ MODSEC_BASE_PATH=${MODSEC_BASE_PATH:-"/usr/local/modsecurity"}
 if [ "${PRESERVE}" == true ]; then
     if "${WITH_MODSECURITY}" == true && ! find "${MODSEC_BASE_PATH}/lib/" -name 'libmodsec*' > /dev/null; then
         panic "Cannot find libmodsec Library at %s" "$MODSEC_BASE_PATH"
-    else
-        export MODSECURITY_LIB="$MODSEC_BASE_PATH"/lib
-        export MODSECURITY_INC="$MODSEC_BASE_PATH"/include/modsecurity
     fi
     if "${WITH_LUA}" == true && ! find "${LUAJIT_BASE_PATH}/lib/" -name 'libluajit*' > /dev/null; then
         panic "Cannot find libluajit Library at %s" "$LUAJIT_BASE_PATH"
@@ -328,6 +325,9 @@ if [[ "${WITH_MODSECURITY}" == true && ! "${PRESERVE}" == true ]]; then
     ./configure --prefix=${MODSEC_BASE_PATH}
     make
     sudo make install
+    
+    export MODSECURITY_LIB=${MODSEC_BASE_PATH}/lib
+    export MODSECURITY_INC=${MODSEC_BASE_PATH}/include/modsecurity
 fi
 
 #################################
