@@ -329,7 +329,7 @@ fi
 
 if [[ "${WITH_MODSECURITY}" == true ]]; then
     export MODSECURITY_LIB=${MODSEC_BASE_PATH}/lib
-    export MODSECURITY_INC=${MODSEC_BASE_PATH}/include/modsecurity
+    export MODSECURITY_INC=${MODSEC_BASE_PATH}/include
 fi
 
 #################################
@@ -468,6 +468,7 @@ if [ "${WITH_MODSECURITY}" == true ]; then
     NGINX_CONFIG_PARAMS+=(
         --add-dynamic-module=mosc/ModSecurity-nginx
     )
+    WITH_LD_OPT+=" -L$MODSECURITY_LIB"
 fi
 
 # SomeHow, Nginx is broken when compiling as dynamic module with BoringSSL. 
