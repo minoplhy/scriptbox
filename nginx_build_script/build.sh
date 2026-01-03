@@ -265,8 +265,8 @@ if [[ -z $SOURCE_FOLDER ]]; then
     esac
 else
     info "INFO: Building on custom folder"
-    cp -r "${SOURCE_FOLDER}" $DESTINATION/nginx
-    cp -r "${SOURCE_FOLDER}"/* $DESTINATION/nginx
+    cp -r "${SOURCE_FOLDER}" $HOMEDIRECTORY/nginx
+    cp -r "${SOURCE_FOLDER}"/* $HOMEDIRECTORY/nginx
 fi
 
 # Build SSL Library
