@@ -84,6 +84,17 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --source-folder=* )
+            SOURCE_FOLDER="${1#*=}"
+            case $SOURCE_FOLDER in
+                "")
+                    echo "ERROR: --source-folder= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;                              # Source folder for your nginx/freenginx build / in case --type does not satisfy you
         --nginx-tag=* )
             NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
             check_empty "$NGINX_TAG" "NGINX_TAG"
@@ -96,7 +107,14 @@ done
 
 # DEFAULT VARIABLES
 SSL_LIB=${SSL_LIB:-"boringssl"}
-BUILD_TYPE=${BUILD_TYPE:-"nginx"}
+# Source folder get more priority than the --type
+if [[ -z $SOURCE_FOLDER ]]; then
+    BUILD_TYPE=${BUILD_TYPE:-"nginx"}
+fi
+
+if [[ -n $SOURCE_FOLDER && ! -d $SOURCE_FOLDER ]]; then
+    panic "Error: folder '%s' not exist! exiting...\n" $SOURCE_FOLDER
+fi
 
 WITH_MODSECURITY=${WITH_MODSECURITY:-false}
 WITH_LUA=${WITH_LUA:-false}
@@ -206,44 +224,50 @@ rm -rf $HOMEDIRECTORY
 mkdir $HOMEDIRECTORY && cd $HOMEDIRECTORY
 
 #Setup Nginx/freenginx repository
-case $BUILD_TYPE in
-    "nginx")
-        cd $HOMEDIRECTORY
-        git clone https://github.com/nginx/nginx $HOMEDIRECTORY/nginx
-        cd $HOMEDIRECTORY/nginx
+if [[ -z $SOURCE_FOLDER ]]; then
+    case $BUILD_TYPE in
+        "nginx")
+            cd $HOMEDIRECTORY
+            git clone https://github.com/nginx/nginx $HOMEDIRECTORY/nginx
+            cd $HOMEDIRECTORY/nginx
 
-        # Check if the tag exists
-        if [[ -n $NGINX_TAG ]]
-        then
-            if git show-ref $NGINX_TAG --quiet;  then
-                info "Switching Nginx Branch to %s" "${NGINX_TAG}"
-                git checkout $NGINX_TAG
+            # Check if the tag exists
+            if [[ -n $NGINX_TAG ]]
+            then
+                if git show-ref $NGINX_TAG --quiet;  then
+                    info "Switching Nginx Branch to %s" "${NGINX_TAG}"
+                    git checkout $NGINX_TAG
+                else
+                    panic "NGINX_TAG specified is not existed. aborting..."
+                fi
             else
-                panic "NGINX_TAG specified is not existed. aborting..."
+                git checkout master
             fi
-        else
-            git checkout master
-        fi
-        ;;
-    "freenginx")
-        cd $HOMEDIRECTORY
-        hg clone https://freenginx.org/hg/nginx $HOMEDIRECTORY/nginx
+            ;;
+        "freenginx")
+            cd $HOMEDIRECTORY
+            hg clone https://freenginx.org/hg/nginx $HOMEDIRECTORY/nginx
 
-        cd $HOMEDIRECTORY/nginx
-        # Check if the tag exists
-        if [[ -n $NGINX_TAG ]]
-        then
-            if hg tags | grep -q "^${NGINX_TAG}\>"; then
-                info "Switching Nginx Branch to %s" "${NGINX_TAG}"
-                hg checkout $NGINX_TAG
+            cd $HOMEDIRECTORY/nginx
+            # Check if the tag exists
+            if [[ -n $NGINX_TAG ]]
+            then
+                if hg tags | grep -q "^${NGINX_TAG}\>"; then
+                    info "Switching Nginx Branch to %s" "${NGINX_TAG}"
+                    hg checkout $NGINX_TAG
+                else
+                    panic "NGINX_TAG specified is not existed. aborting..."
+                fi
             else
-                panic "NGINX_TAG specified is not existed. aborting..."
+                hg checkout default
             fi
-        else
-            hg checkout default
-        fi
-        ;;
-esac
+            ;;
+    esac
+else
+    info "INFO: Building on custom folder"
+    cp -r "${SOURCE_FOLDER}" $DESTINATION/nginx
+    cp -r "${SOURCE_FOLDER}"/* $DESTINATION/nginx
+fi
 
 # Build SSL Library
 case $SSL_LIB in

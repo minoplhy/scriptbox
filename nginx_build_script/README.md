@@ -64,6 +64,17 @@ while [ ${#} -gt 0 ]; do
                     ;;
             esac
             ;;
+        --source-folder=* )
+            SOURCE_FOLDER="${1#*=}"
+            case $SOURCE_FOLDER in
+                "")
+                    echo "ERROR: --source-folder= is empty!"
+                    exit 1
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;                              # Source folder for your nginx/freenginx build / in case --type does not satisfy you
         --nginx-tag=* )
             NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
             check_empty "$NGINX_TAG" "NGINX_TAG"
@@ -73,7 +84,6 @@ while [ ${#} -gt 0 ]; do
     esac
     shift
 done
-
 ```
 
 #### Note :  
