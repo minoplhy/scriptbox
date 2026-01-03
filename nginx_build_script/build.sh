@@ -99,6 +99,10 @@ while [ ${#} -gt 0 ]; do
             NGINX_TAG="${1#*=}"             # Specify Nginx/freenginx Tag
             check_empty "$NGINX_TAG" "NGINX_TAG"
             ;;
+        --builddir | -b )
+            shift
+            HOMEDIRECTORY=$1
+            ;;                          # Build Dir
         *)
             ;;
     esac
@@ -216,7 +220,7 @@ case $os in
         ;;
 esac
 
-HOMEDIRECTORY=~/nginx_scriptbox
+HOMEDIRECTORY=${HOMEDIRECTORY:-"~/nginx_scriptbox"}
 
 # Remove old build directory
 rm -rf $HOMEDIRECTORY
