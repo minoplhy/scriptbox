@@ -320,7 +320,7 @@ if [[ "${WITH_MODSECURITY}" == true && ! "${PRESERVE}" == true ]]; then
     git clone --depth=1 https://github.com/owasp-modsecurity/ModSecurity $HOMEDIRECTORY/ModSecurity
     cd $HOMEDIRECTORY/ModSecurity
     git submodule init
-    git submodule update
+    git submodule update --init --recursive
     ./build.sh
     ./configure --prefix=${MODSEC_BASE_PATH}
     make
