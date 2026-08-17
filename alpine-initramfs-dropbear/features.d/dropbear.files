@@ -1,3 +1,5 @@
 /usr/sbin/dropbear
 /sbin/cryptsetup
 /etc/dropbear
+/etc/dropbear/authorized_keys
+/etc/dropbear/unlock_disk
