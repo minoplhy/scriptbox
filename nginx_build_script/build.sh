@@ -295,7 +295,7 @@ case $SSL_LIB in
 
         git clone --depth=1 https://github.com/google/boringssl $HOMEDIRECTORY/boringssl
         cd $HOMEDIRECTORY/boringssl
-        cmake -GNinja -B build
+        cmake -GNinja -B build -DBUILD_TESTING=OFF
         ninja -C build
         ;;
     "libressl")
