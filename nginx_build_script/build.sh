@@ -331,7 +331,7 @@ case $SSL_LIB in
     "openssl")
         wget https://github.com/openssl/openssl/releases/download/${OPENSSL_VERSION}/${OPENSSL_VERSION}.tar.gz
         tar -xzf ${OPENSSL_VERSION}.tar.gz
-        cd $HOMEDIRECTORY/openssl/${OPENSSL_VERSION}
+        cd ${OPENSSL_VERSION}
         ./Configure --prefix=/opt/openssl
         make
         sudo make install
