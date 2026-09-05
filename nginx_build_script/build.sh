@@ -62,13 +62,22 @@ while [ ${#} -gt 0 ]; do
                 "quictls")                  SSL_LIB="quictls"   ;;
                 "boringssl")                SSL_LIB="boringssl" ;;
                 "libressl")                 SSL_LIB="libressl"  ;;
+                "openssl")                  SSL_LIB="openssl"   ;;
                 "")
                     panic "--ssl= is empty!"
                     ;;
                 *)
-                    panic "Vaild values for --ssl are -> quictls, boringssl, libressl"
+                    panic "Vaild values for --ssl are -> quictls, boringssl, libressl, openssl"
                     ;;
             esac
+            ;;
+        --openssl-version=* )
+            if [[ "${SSL_LIB}" == "openssl" ]]; then
+                OPENSSL_VERSION="${1#*=}"
+                OPENSSL_VERSION="${OPENSSL_VERSION,,}"
+            else
+                panic "--openssl-version is only apprechable when SSL Library is Openssl!"
+            fi
             ;;
         --type=* )
             BUILD_TYPE="${1#*=}"
@@ -118,6 +127,12 @@ fi
 
 if [[ -n $SOURCE_FOLDER && ! -d $SOURCE_FOLDER ]]; then
     panic "Error: folder '%s' not exist! exiting...\n" $SOURCE_FOLDER
+fi
+
+
+if [[ "${SSL_LIB}" == "openssl" ]]; then
+    OPENSSL_VERSION=${OPENSSL_VERSION:-"4.0.2"}
+    OPENSSL_VERSION="openssl-${OPENSSL_VERSION#openssl-}"
 fi
 
 WITH_MODSECURITY=${WITH_MODSECURITY:-false}
@@ -313,6 +328,17 @@ case $SSL_LIB in
         sudo cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/include /opt/libressl/.openssl
         sudo cp -r $HOMEDIRECTORY/libressl/libressl-build/usr/local/lib /opt/libressl/.openssl
         ;;
+    "openssl")
+        wget https://github.com/openssl/openssl/releases/download/${OPENSSL_VERSION}/${OPENSSL_VERSION}.tar.gz
+        tar -xzf ${OPENSSL_VERSION}.tar.gz -C $HOMEDIRECTORY/openssl
+        cd $HOMEDIRECTORY/openssl/${OPENSSL_VERSION}
+        ./Configure --prefix=/opt/openssl
+        make
+        sudo make install
+        sudo mkdir -p /opt/openssl/.openssl
+        sudo cp -r /opt/openssl/include /opt/openssl/.openssl/include
+        sudo cp -r /opt/openssl/lib64 /opt/openssl/.openssl/lib
+    ;;
 esac
 
 # ModSecurity
@@ -450,6 +476,13 @@ case $SSL_LIB in
         )
         WITH_LD_OPT="-L/opt/quictls/.openssl/lib"
         ;;
+    "openssl")
+        NGINX_CONFIG_PARAMS+=(
+            --with-openssl="/opt/openssl"
+            --with-cc-opt="-I/opt/openssl/.openssl/include -x c"
+        )
+        WITH_LD_OPT="-L/opt/openssl/.openssl/lib"
+        ;;
     "boringssl")
         NGINX_CONFIG_PARAMS+=(
             --with-cc-opt="-I../boringssl/include -x c"
@@ -494,6 +527,8 @@ cd $HOMEDIRECTORY/nginx
 # Prevent Error 127, When building.
 if [ $SSL_LIB == "quictls" ]; then
     sudo touch /opt/quictls/.openssl/include/openssl/ssl.h
+elif [ $SSL_LIB == "openssl" ]; then
+    sudo touch /opt/openssl/.openssl/include/openssl/ssl.h
 elif [ $SSL_LIB == "libressl" ]; then
     sudo touch /opt/libressl/.openssl/include/openssl/ssl.h
 fi
